@@ -80,6 +80,7 @@ Công ty dịch vụ phần mềm toàn cầu; vòng technical nặng lý thuy�
 - [@Transactional](#spring-3), [Propagation và isolation](#spring-4), [N+1](#jpa-16)
 - [Kafka message key](#kafka-11), [DLQ](#kafka-13), [Outbox](#microservices-4)
 - [CI/CD: pipeline dự án cũ](#cicd-2), [Rollout strategies](#cicd-5)
+- Cloud (senior hay bị hỏi): [Kiến trúc AWS tổng quan](#aws-big-picture), [IAM](#aws-iam), [RDS Multi-AZ vs replica](#aws-rds), [CDN](#sd-cdn)
 - [Longest substring](#coding-1), [Group by range bằng stream](#coding-2)
 - [Làm việc với yêu cầu không rõ của khách hàng](#behavioral-4), [Dùng AI tools](#ai-tools-13)
 
@@ -106,6 +107,7 @@ Công ty phần mềm gốc Đức, có văn phòng TP.HCM và Đà Nẵng; ti�
 - Toàn bộ tag `#coding`, `#dsa` và `#sql`
 - [Dockerfile cho Java](#docker-k8s-12), [K8s objects](#docker-k8s-13), [Probes](#docker-k8s-14)
 - [Testing Spring Boot](#spring-10), [Design patterns và SOLID](#spring-9)
+- [CrashLoopBackOff](#k8s-debug), [Xử lý sự cố production](#troubleshoot-10min)
 
 @@@ co-grab | Grab | company | grab,product | guide
 Công ty product quy mô Đông Nam Á; vòng coding và system design khó hơn hẳn các công ty dịch vụ.
@@ -131,6 +133,8 @@ Toàn bộ quá trình thường mất 4–6 tuần ([techinterview.org](https:/
 - Toàn bộ tag `#dsa` và `#coding`
 - [Design ride matching](#sd-ride-matching), [Design wallet/ledger](#sd-wallet), [Rate limiter](#system-design-18), [Scale database](#system-design-20)
 - [Idempotency](#microservices-5), [Saga](#microservices-3), [Outbox](#microservices-4), [Kafka delivery](#kafka-12)
+- Go (kinh nghiệm Opswat): [Worker pool + context](#go-worker-pool), [Channels](#go-channels), [Context](#go-context), [Goroutine leak](#go-goroutine-leak), [Map và concurrency](#go-map), [Mutex vs atomic](#go-sync), [Race condition](#go-race), [GC](#go-gc)
+- [System design framework](#sd-checklist), [Consistent hashing](#sd-consistent-hashing), [Distributed lock](#sd-distributed-lock), [Flash sale](#sd-flash-sale), [Double-entry ledger](#sd-double-entry), [Xử lý tiền](#go-money)
 - [Production incident](#behavioral-2), [Bất đồng với đồng nghiệp](#behavioral-3), [Mentoring](#behavioral-7)
 
 @@@ co-axon | Axon | company | axon,product | guide
@@ -158,6 +162,7 @@ Vị trí ở TP.HCM làm hybrid, onsite từ thứ Ba đến thứ Sáu ([Axon 
 - Toàn bộ tag `#dsa` và `#coding`
 - [REST API design](#spring-8), [Design patterns và SOLID](#spring-9), [Spring Security và auth](#spring-7)
 - [Kiến trúc dự án gần nhất](#system-design-16), [Caching](#system-design-19)
+- Security (gắn với kinh nghiệm Opswat): [OWASP API](#sec-owasp-api), [OAuth/OIDC](#sec-oauth), [JWT](#sec-jwt), [mTLS](#sec-mtls), [RBAC/ABAC](#sec-rbac-abac), [Bảo vệ PII](#sec-pii), [STRIDE](#sec-stride)
 
 @@@ dsa-lru | Implement an LRU cache with O(1) get and put. | coding | dsa,design | qa | DSA
 Kết hợp hash map (tra cứu O(1)) với danh sách liên kết đôi (di chuyển và xóa O(1)): phần tử mới dùng đưa lên đầu, khi đầy thì xóa phần tử ở cuối. Trong Java, `LinkedHashMap` với `accessOrder = true` làm sẵn việc này; interviewer thường muốn bạn tự cài.
@@ -433,3 +438,8 @@ boolean canFinish(int n, int[][] prereq) {
 **Events.** Use the outbox pattern to publish 'payment completed' events to Kafka, so downstream services see every committed transaction exactly once in effect.
 
 **Scale.** Shard by wallet ID. Hot merchant wallets can be split into sub-accounts that are summed for reads."
+
+@@@ sources | Nguồn tham khảo | guide | huong-dan | guide
+Các bài trong mục Go, Security, AWS, PostgreSQL internals và một phần System design được viết lại bằng lời của kho này, dựa trên danh sách chủ đề và câu hỏi phỏng vấn của [knowledge base của nathan.huynh](https://minhnhat97kg.github.io/docsify/). Mỗi bài có link "Tham khảo thêm" tới bài gốc để đọc chi tiết, kèm code Go.
+
+Thông tin quy trình phỏng vấn trong mục Công ty lấy từ báo cáo ứng viên trên Glassdoor, Taro và tin tuyển dụng; link nằm ngay trong từng trang công ty. Quy trình thực tế có thể khác, hãy hỏi lại recruiter.

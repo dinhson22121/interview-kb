@@ -6,9 +6,9 @@ import json, re, unicodedata, collections
 
 CATS = [
     ('guide', 'Hướng dẫn'), ('company', 'Công ty'), ('hr', 'HR & giới thiệu'),
-    ('java', 'Java & JVM'), ('spring', 'Spring & Database'),
-    ('arch', 'Microservices & System Design'), ('devops', 'CI/CD & Cloud'),
-    ('coding', 'Coding, DSA & SQL'), ('behavioral', 'Behavioral & AI'),
+    ('java', 'Java & JVM'), ('go', 'Go'), ('spring', 'Spring & Database'),
+    ('arch', 'Microservices & System Design'), ('devops', 'CI/CD, Cloud & AWS'),
+    ('security', 'Security'), ('coding', 'Coding, DSA & SQL'), ('behavioral', 'Behavioral & AI'),
 ]
 CAT_LABEL = dict(CATS)
 H2_CAT = [  # prefix of the ## heading -> category
@@ -29,8 +29,7 @@ SUB = {  # ### heading -> topic tag (also the article id prefix)
     'AI-assisted development': 'ai-tools',
 }
 EXTRA_TAGS = [(r'Opswat', 'opswat'), (r'DXC', 'dxc'), (r'\bKafka\b', 'kafka'),
-              (r'Kubernetes|kubectl', 'kubernetes'), (r'Docker', 'docker'),
-              (r'@Transactional|transaction', 'transaction')]
+              (r'Kubernetes|kubectl', 'kubernetes'), (r'Docker', 'docker')]
 
 
 def slug(s):
@@ -138,7 +137,8 @@ if iv:
     articles.remove(iv)
 
 # ---------- extra.md ----------
-raw = open('extra.md', encoding='utf-8').read()
+import glob
+raw = '\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob('extra*.md')))
 for chunk in raw.split('@@@ ')[1:]:
     head, body = chunk.split('\n', 1)
     parts = [x.strip() for x in head.split('|')]
