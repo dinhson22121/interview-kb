@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backend Interview KB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+:root{
+  --bg:#ffffff; --bg2:#f4f4f2; --fg:#1b1b1b; --muted:#6b6b6b; --line:#d6d6d2;
+  --accent:#1b1b1b; --hl:#fff3b0; --hlfg:#5a4a00; --tip:#eef4ff; --tipline:#9db4e0;
+  --ok:#1f7a3a; --code:#f2f2ef;
+}
+html.dark{
+  --bg:#141414; --bg2:#1c1c1c; --fg:#e4e4e0; --muted:#8e8e88; --line:#333330;
+  --accent:#e4e4e0; --hl:#3b3416; --hlfg:#f0dc8a; --tip:#18202e; --tipline:#3c5582;
+  --ok:#5cc47a; --code:#1f1f1d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:13px/1.6 "JetBrains Mono","Noto Sans Mono",ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;background:none;border:1px solid var(--line);padding:2px 9px;cursor:pointer}
+button:hover{border-color:var(--fg)}
+button.on{border-color:var(--fg);font-weight:700}
+a{color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);flex:none}
+.logo{font-weight:700;white-space:nowrap;cursor:pointer}
+.search{flex:1;max-width:420px;display:flex;border:1px solid var(--line)}
+.search span{padding:3px 8px;color:var(--muted);border-right:1px solid var(--line)}
+.search input{flex:1;border:0;outline:0;background:transparent;color:var(--fg);font:inherit;padding:3px 8px;min-width:0}
+.search:focus-within{border-color:var(--fg)}
+.hdr-right{margin-left:auto;display:flex;gap:6px}
+#menu{display:none}
+main{flex:1;display:flex;min-height:0}
+aside{width:210px;flex:none;border-right:1px solid var(--line);background:var(--bg2);overflow-y:auto;padding:10px 0 20px}
+aside h4{margin:10px 8px 4px;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.05em}
+aside .row{display:flex;justify-content:space-between;gap:8px;padding:2px 10px;cursor:pointer;color:var(--fg)}
+aside .row:hover{background:var(--bg)}
+aside .row.on{background:var(--fg);color:var(--bg)}
+aside .row .n{color:var(--muted)}
+aside .row.on .n{color:var(--bg)}
+.prog{margin:4px 10px 0;height:6px;border:1px solid var(--line)}
+.prog div{height:100%;background:var(--ok)}
+#content{flex:1;overflow-y:auto;min-width:0}
+.listhead{padding:8px 12px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.listhead .chip{border:1px solid var(--line);padding:0 6px;color:var(--fg);cursor:pointer}
+.card{padding:12px 12px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.card:hover{background:var(--bg2)}
+.card h3{margin:0 0 2px;font-size:14px}
+.card h3 .q{color:var(--muted);font-weight:400}
+.meta{color:var(--muted);font-size:12px}
+.meta .done{color:var(--ok)}
+.ex{margin:6px 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.practice .ex{display:none}
+.tags{color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:0 10px}
+.tags span{cursor:pointer}
+.tags span:hover{color:var(--fg);text-decoration:underline}
+.empty{padding:30px 12px;color:var(--muted)}
+.detail{max-width:860px;padding:12px 16px 60px}
+.detail .nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.detail h1{font-size:19px;margin:0 0 4px;line-height:1.4}
+.detail .tags{margin:4px 0 14px}
+.tip{background:var(--tip);border-left:3px solid var(--tipline);padding:8px 12px;margin:0 0 14px}
+.tip p{margin:0}
+.reveal{margin:6px 0 16px;width:100%;padding:18px;border-style:dashed;color:var(--muted)}
+.body{font-size:13.5px}
+.body p{margin:0 0 12px}
+.body h3{font-size:14px;margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.body ul,.body ol{padding-left:22px;margin:0 0 12px}
+.body li{margin:2px 0}
+.body code{background:var(--code);padding:0 4px}
+.body pre{background:var(--code);border:1px solid var(--line);padding:10px 12px;overflow-x:auto;position:relative;font-size:12.5px;line-height:1.5}
+.body pre code{background:none;padding:0}
+.body pre button{position:absolute;top:6px;right:6px;font-size:11px;background:var(--bg)}
+.body table{border-collapse:collapse;margin:0 0 14px;width:100%;font-size:12.5px}
+.body th,.body td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+.body th{background:var(--bg2)}
+.body blockquote{margin:0 0 12px;padding-left:12px;border-left:3px solid var(--line);color:var(--muted)}
+.body em{color:var(--muted)}
+mark.fill{background:var(--hl);color:var(--hlfg);padding:0 2px}
+.body input[type=checkbox]{margin-right:6px}
+.foot-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:26px;padding-top:12px;border-top:1px solid var(--line)}
+footer{display:flex;justify-content:space-between;padding:5px 12px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;flex:none}
+.kbd{color:var(--muted)}
+@media (max-width:760px){
+  #menu{display:inline-block}
+  aside{position:fixed;top:43px;bottom:28px;left:0;z-index:5;display:none;box-shadow:2px 0 8px rgba(0,0,0,.15)}
+  aside.open{display:block}
+  header{flex-wrap:wrap;gap:8px}
+  .search{order:5;flex:1 1 100%;max-width:none}
+  aside{top:84px}
+  .logo .full{display:none}
+  footer span:last-child{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <button id="menu" title="Menu">[=]</button>
+  <div class="logo" id="home">[ interview<span class="full">.kb</span> ]</div>
+  <label class="search"><span>/</span><input id="q" placeholder="search..." autocomplete="off"></label>
+  <div class="hdr-right">
+    <button id="practice" title="Ẩn câu trả lời để tự luyện">[luyện<span class="lbl"> tập</span>]</button>
+    <button id="dark">[dark]</button>
+  </div>
+</header>
+<main>
+  <aside id="side"></aside>
+  <section id="content"></section>
+</main>
+<footer><span id="fl"></span><span>interview.kb // github pages</span></footer>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function(){
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const A = DATA.articles;
+const BY = Object.fromEntries(A.map(a=>[a.id,a]));
+const ROUNDS = [['all','Tất cả']].concat(DATA.cats);
+const TAGLABEL = {'java-modern':'java-8-21','tong-quan':'tổng-quan','huong-dan':'hướng-dẫn','ke-hoach':'kế-hoạch','cong-ty':'công-ty'};
+const tl = t => '#' + (TAGLABEL[t]||t);
+
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem('kb.'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem('kb.'+k, JSON.stringify(v)); }catch(e){} }
+};
+const S = {round: store.get('round','all'), tag: store.get('tag',null), q:'', todo: store.get('todo',false),
+           practice: store.get('practice',false), dark: store.get('dark', matchMedia('(prefers-color-scheme: dark)').matches)};
+let done = new Set(store.get('done',[]));
+let revealed = new Set();
+
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d');
+A.forEach(a=>{ a._s = norm(a.title+' '+a.section+' '+a.tags.join(' ')+' '+a.body+' '+(a.tip||'')); });
+const QA = A.filter(a=>a.kind==='qa');
+
+function applyTheme(){
+  document.documentElement.classList.toggle('dark', S.dark);
+  $('#dark').textContent = S.dark ? '[light]' : '[dark]';
+  document.body.classList.toggle('practice', S.practice);
+  $('#practice').classList.toggle('on', S.practice);
+}
+
+function filtered(){
+  const terms = norm(S.q).split(/\s+/).filter(Boolean);
+  return A.filter(a => (S.round==='all' || a.cat===S.round)
+    && (!S.tag || a.tags.includes(S.tag))
+    && (!S.todo || (a.kind==='qa' && !done.has(a.id)))
+    && terms.every(t => a._s.includes(t)));
+}
+
+function renderSide(){
+  const pool = A.filter(a => S.round==='all' || a.cat===S.round);
+  const tc = {};
+  pool.forEach(a=>a.tags.forEach(t=>tc[t]=(tc[t]||0)+1));
+  const tags = Object.entries(tc).sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0]));
+  const rc = r => r==='all' ? A.length : A.filter(a=>a.cat===r).length;
+  const nd = QA.filter(a=>done.has(a.id)).length;
+  let h = '<h4>-- CHỦ ĐỀ --</h4>';
+  h += ROUNDS.map(([k,l])=>`<div class="row ${S.round===k?'on':''}" data-round="${k}"><span>${l}</span><span class="n">${rc(k)}</span></div>`).join('');
+  h += `<h4>-- TIẾN ĐỘ --</h4><div class="row ${S.todo?'on':''}" data-todo="1"><span>chưa thuộc</span><span class="n">${QA.length-nd}</span></div>`;
+  h += `<div class="row" style="cursor:default"><span>đã thuộc</span><span class="n">${nd}/${QA.length}</span></div><div class="prog"><div style="width:${(nd/QA.length*100).toFixed(1)}%"></div></div>`;
+  const cos = A.filter(a=>a.cat==='company');
+  h += '<h4>-- CÔNG TY --</h4>' + cos.map(a=>`<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${esc(a.title)}</span><span class="n">→</span></div>`).join('');
+  h += '<h4>-- TAGS --</h4>';
+  h += tags.filter(([t,n])=>n>1||t===S.tag).map(([t,n])=>`<div class="row ${S.tag===t?'on':''}" data-tag="${t}"><span>${tl(t)}</span><span class="n">${n}</span></div>`).join('');
+  $('#side').innerHTML = h;
+}
+
+function card(a){
+  const q = a.num ? `<span class="q">Q${a.num}.</span> ` : '';
+  const sec = a.section ? ' // ' + esc(a.section) : '';
+  const d = done.has(a.id) ? ' <span class="done">✓ đã thuộc</span>' : '';
+  return `<div class="card" data-id="${a.id}"><h3>${q}${esc(a.title)}</h3>
+    <div class="meta">${esc(a.catLabel)}${sec}${d}</div>
+    <div class="ex">${esc(a.excerpt)}</div>
+    <div class="tags">${a.tags.map(t=>`<span data-tag="${t}">${tl(t)}</span>`).join('')}</div></div>`;
+}
+
+function renderList(){
+  const L = filtered();
+  const chips = [];
+  if (S.round!=='all') chips.push(`<span class="chip" data-clear="round">${esc((ROUNDS.find(r=>r[0]===S.round)||['',''])[1])} ×</span>`);
+  if (S.tag) chips.push(`<span class="chip" data-clear="tag">${tl(S.tag)} ×</span>`);
+  if (S.todo) chips.push(`<span class="chip" data-clear="todo">chưa thuộc ×</span>`);
+  if (S.q) chips.push(`<span class="chip" data-clear="q">"${esc(S.q)}" ×</span>`);
+  $('#content').innerHTML = `<div class="listhead"><span>${L.length} articles</span>${chips.join('')}</div>`
+    + (L.length ? L.map(card).join('') : '<div class="empty">Không có bài nào khớp bộ lọc.</div>');
+  $('#content').scrollTop = 0;
+}
+
+function md(src){
+  if (window.marked) return marked.parse(src, {gfm:true, breaks:false});
+  return '<pre>'+esc(src)+'</pre>';
+}
+function decorate(root){
+  // highlight [placeholders] outside code/links
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode(n){
+    return n.parentElement.closest('code,pre,a') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }});
+  const nodes=[]; while(w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n=>{
+    if (!/\[[^\]\n]{1,90}\]/.test(n.nodeValue)) return;
+    const span = document.createElement('span');
+    span.innerHTML = esc(n.nodeValue).replace(/\[([^\]\n]{1,90})\]/g, '<mark class="fill">[$1]</mark>');
+    n.replaceWith(...span.childNodes);
+  });
+  root.querySelectorAll('pre').forEach(p=>{
+    const b=document.createElement('button'); b.textContent='copy';
+    b.onclick=e=>{e.stopPropagation(); const t=p.querySelector('code').innerText;
+      (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='copied';setTimeout(()=>b.textContent='copy',1200);},()=>{b.textContent='select & copy';});};
+    p.appendChild(b);
+  });
+  root.querySelectorAll('a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener';});
+}
+
+function renderDetail(id){
+  const a = BY[id]; if(!a){ location.hash=''; return; }
+  const L = filtered(); let i = L.findIndex(x=>x.id===id);
+  const seq = i>=0 ? L : A; if (i<0) i = A.findIndex(x=>x.id===id);
+  const prev = seq[i-1], next = seq[i+1];
+  const hide = S.practice && a.kind==='qa' && !revealed.has(id);
+  const q = a.num ? `Q${a.num}. ` : '';
+  const sec = a.section && a.section!==a.title ? ' // ' + esc(a.section) : '';
+  let h = `<div class="detail"><div class="nav"><button data-act="back">[&lt;- back]</button>
+    ${prev?`<button data-go="${prev.id}" title="k">[&lt; prev]</button>`:''}
+    ${next?`<button data-go="${next.id}" title="j">[next &gt;]</button>`:''}
+    <span class="kbd" style="margin-left:auto">${i+1}/${seq.length}</span></div>
+    <h1>${q}${esc(a.title)}</h1>
+    <div class="meta">${esc(a.catLabel)}${sec}</div>
+    <div class="tags">${a.tags.map(t=>`<span data-tag="${t}">${tl(t)}</span>`).join('')}</div>`;
+  if (a.tip) h += `<div class="tip body">${md(a.tip)}</div>`;
+  h += hide ? `<button class="reveal" data-act="reveal">[ tự trả lời to trong 60–90 giây, rồi bấm để xem câu trả lời mẫu ]</button>`
+            : `<div class="body" id="ans">${md(a.body)}</div>`;
+  if (a.kind==='qa') h += `<div class="foot-actions"><button data-act="done" class="${done.has(id)?'on':''}">${done.has(id)?'[x] đã thuộc':'[ ] đánh dấu đã thuộc'}</button>
+     ${next?`<button data-go="${next.id}">[câu tiếp &gt;]</button>`:''}</div>`;
+  h += '</div>';
+  $('#content').innerHTML = h;
+  $('#content').querySelectorAll('.body').forEach(decorate);
+  $('#content').scrollTop = 0;
+}
+
+function route(){
+  const id = location.hash.slice(1);
+  renderSide();
+  if (id && BY[id]) renderDetail(id); else renderList();
+  $('#fl').textContent = `${A.length} articles // ${QA.length} câu hỏi // ${DATA.cats.length} chủ đề`;
+}
+function save(){ store.set('round',S.round); store.set('tag',S.tag); store.set('todo',S.todo); }
+function toList(){ if (location.hash) { history.pushState(null,'',location.pathname+location.search); } route(); }
+
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-round],[data-tag],[data-todo],[data-clear],[data-id],[data-go],[data-act]');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.round){ S.round=d.round; if (S.tag && !A.some(a=>(S.round==='all'||a.cat===S.round)&&a.tags.includes(S.tag))) S.tag=null; save(); closeSide(); toList(); }
+  else if (d.tag){ e.stopPropagation(); S.tag = S.tag===d.tag ? null : d.tag; save(); closeSide(); toList(); }
+  else if (d.todo){ S.todo=!S.todo; save(); closeSide(); toList(); }
+  else if (d.clear){ if(d.clear==='round')S.round='all'; else if(d.clear==='tag')S.tag=null; else if(d.clear==='todo')S.todo=false; else {S.q='';$('#q').value='';} save(); route(); }
+  else if (d.id || d.go){ closeSide(); location.hash = d.id || d.go; }
+  else if (d.act==='back'){ toList(); }
+  else if (d.act==='reveal'){ const id=location.hash.slice(1); revealed.add(id); renderDetail(id); }
+  else if (d.act==='done'){ const id=location.hash.slice(1); done.has(id)?done.delete(id):done.add(id); store.set('done',[...done]); renderSide(); renderDetail(id); }
+});
+window.addEventListener('hashchange', route);
+$('#q').addEventListener('input', e=>{ S.q=e.target.value; if (location.hash) history.pushState(null,'',location.pathname+location.search); renderSide(); renderList(); });
+$('#home').onclick = ()=>{ S.round='all'; S.tag=null; S.todo=false; S.q=''; $('#q').value=''; save(); toList(); };
+$('#dark').onclick = ()=>{ S.dark=!S.dark; store.set('dark',S.dark); applyTheme(); };
+$('#practice').onclick = ()=>{ S.practice=!S.practice; store.set('practice',S.practice); revealed.clear(); applyTheme(); route(); };
+$('#menu').onclick = ()=> $('#side').classList.toggle('open');
+function closeSide(){ $('#side').classList.remove('open'); }
+document.addEventListener('keydown', e=>{
+  const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+  if (e.key==='/' && !typing){ e.preventDefault(); $('#q').focus(); return; }
+  if (e.key==='Escape'){ if (typing){ $('#q').blur(); } else if (location.hash) toList(); return; }
+  if (typing || !location.hash) return;
+  if (e.key==='j' || e.key==='ArrowRight'){ const b=$('[data-go][title="j"]'); if(b) location.hash=b.dataset.go; }
+  if (e.key==='k' || e.key==='ArrowLeft'){ const b=$('[data-go][title="k"]'); if(b) location.hash=b.dataset.go; }
+});
+applyTheme(); route();
+})();
+</script>
+</body>
+</html>
