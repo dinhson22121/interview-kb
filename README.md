@@ -21,5 +21,6 @@ Thêm một khối `@@@` vào `src/extra.md` (chủ đề `company` cho trang c�
 cd src
 npm i marked@12.0.2      # lần đầu
 python3 build.py && python3 bundle.py
-git add -A && git commit -m "update content" && git push
+git add -A && git commit -m "update content"
+git push origin main main:gh-pages   # GitHub Pages phục vụ nhánh gh-pages
 ```
