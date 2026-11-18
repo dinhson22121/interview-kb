@@ -83,6 +83,8 @@ Công ty dịch vụ phần mềm toàn cầu; vòng technical nặng lý thuy�
 - Cloud (senior hay bị hỏi): [Kiến trúc AWS tổng quan](#aws-big-picture), [IAM](#aws-iam), [RDS Multi-AZ vs replica](#aws-rds), [CDN](#sd-cdn)
 - [Longest substring](#coding-1), [Group by range bằng stream](#coding-2)
 - [Làm việc với yêu cầu không rõ của khách hàng](#behavioral-4), [Dùng AI tools](#ai-tools-13)
+- Câu hỏi nhanh từ một buổi phỏng vấn EPAM Ấn Độ (2 vòng technical, vị trí 3–7 năm, [video GenZ Career](https://www.youtube.com/watch?v=VZ3T2gFlEiA)): [Abstraction vs encapsulation](#jc-abstraction-encapsulation), [String pool](#jc-string-pool), [Private method trong interface](#jc-interface-private), [Vi phạm OCP](#jc-ocp-violation), [finally đè exception](#jc-finally), [Map vs Collection, HashMap vs TreeMap](#jc-collection-map), [Không cần @SpringBootApplication](#sp-without-sba), [DispatcherServlet](#sp-dispatcher), [@RequestParam vs @PathVariable](#sp-param-path), [Spring profiles](#sp-profiles), [REST stateless](#arch-rest), [Circuit breaker mở quá lâu](#arch-cb-open), [TDD/BDD/test pyramid](#eng-testing), [SDLC và Agile](#eng-sdlc-agile), [Trapping Rain Water](#dsa-rain-water)
+- Lưu ý: "22 LPA" trong video là lương EPAM Ấn Độ (Lakhs Per Annum, khoảng ₫600M/năm), không áp dụng cho Việt Nam.
 
 @@@ co-mgm | mgm technology partners | company | mgm,outsourcing | guide
 Công ty phần mềm gốc Đức, có văn phòng TP.HCM và Đà Nẵng; tiếng Anh và live coding Java là hai cửa chính.
