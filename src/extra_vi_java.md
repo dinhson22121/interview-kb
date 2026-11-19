@@ -22,13 +22,24 @@
 
 ### English
 
-"HashMap is an array of buckets. On `put`, it spreads the key's `hashCode` by XOR-ing the high 16 bits into the low 16, then picks the bucket with `(n - 1) & hash`. The table size is always a power of two, so that's a cheap modulo.
+**Structure:** a HashMap is an array of "buckets" (`Node<K,V>[] table`). Each bucket holds a linked list, or a red-black tree when the bucket gets crowded.
 
-If the bucket is empty, a new node goes in. Otherwise it walks the bucket comparing hash first, then `equals`: an equal key replaces the value, otherwise a node is appended.
+**On `put(key, value)`:**
 
-When one bucket reaches 8 nodes and the table has at least 64 buckets, the list becomes a red-black tree, so the worst case is O(log n) instead of O(n). When size exceeds capacity times the load factor, 0.75 by default, the table doubles. Each entry either stays at its index or moves by exactly the old capacity, so no rehashing is needed.
+1. Compute `hash = key.hashCode() ^ (h >>> 16)`: XOR the high 16 bits into the low 16 bits, so keys that differ only in their high bits still land in different buckets.
+2. Compute the bucket index: `index = (n - 1) & hash`, where `n` is the table size, always a power of two. This `&` is equivalent to `% n` but faster.
+3. If the bucket is empty: create a new node.
+4. If the bucket already has entries: walk it, comparing `hash` first and only then calling `equals`. An equal key overwrites the value; otherwise a node is appended at the end.
+5. **Treeify:** when one bucket reaches **8 nodes** and the table has **at least 64 buckets**, the list becomes a red-black tree, so the worst case is O(log n) instead of O(n). If the table is smaller than 64, HashMap resizes instead of treeifying. When a bucket shrinks to 6 nodes, the tree turns back into a list.
+6. **Resize:** when `size > capacity × loadFactor` (by default 16 × 0.75 = 12), the table doubles. Because sizes are powers of two, each node either stays at its old index or moves by exactly `oldCapacity`, so hashes don't need to be recomputed.
 
-It allows one null key, it isn't thread-safe, and keys should be immutable, because changing a field used in `hashCode` after insertion makes the entry unreachable. If I know the size in advance, I pre-size it to avoid repeated resizing."
+**`get(key)`:** compute the hash, find the bucket, compare `hash` and then `equals`. O(1) on average.
+
+**Points interviewers often follow up on:**
+- It allows **one `null` key** (always stored in bucket 0) and any number of `null` values.
+- **Not thread-safe:** concurrent writes can lose data. In Java 7, concurrent resizing could even create an infinite loop.
+- Keys should be **immutable**: if you change a field used in `hashCode` after `put`, that entry can never be found again.
+- If you know the expected number of entries, pre-size the map to avoid repeated resizing: `new HashMap<>(expected / 0.75f + 1)`, or `HashMap.newHashMap(expected)` since Java 19.
 
 @@@ java-core-2 | HashMap, ConcurrentHashMap và synchronizedMap khác nhau thế nào? / HashMap vs ConcurrentHashMap vs Collections.synchronizedMap? | java | | override
 ### Tiếng Việt
@@ -68,11 +79,38 @@ map.computeIfAbsent(k, x -> new ArrayList<>()).add(v);
 
 ### English
 
-"`HashMap` isn't thread-safe. `Collections.synchronizedMap` wraps every method in one lock for the whole map, so all threads serialize, and you still have to synchronize manually while iterating.
+| | HashMap | Collections.synchronizedMap | ConcurrentHashMap |
+|---|---|---|---|
+| Thread-safe | No | Yes | Yes |
+| Locking | None | One lock for the **whole map** | CAS plus a lock **per bucket** |
+| Reads | No lock | Locked | **Lock-free** (reads `volatile` fields) |
+| `null` key/value | Allowed | Allowed | **Not allowed** |
+| Iterator | Fail-fast (`ConcurrentModificationException`) | Fail-fast; you must `synchronized` on the map while iterating | **Weakly consistent**, never throws |
 
-`ConcurrentHashMap` since Java 8 inserts into an empty bucket with CAS and otherwise locks only the first node of that bucket, so writers to different buckets don't block each other. Reads take no lock at all. Iterators are weakly consistent: they never throw `ConcurrentModificationException`. It rejects null keys and values, because in a concurrent map a null result would be ambiguous between 'absent' and 'mapped to null'.
+**How ConcurrentHashMap works since Java 8:**
+- Empty bucket: insert with **CAS** (compare-and-swap), no lock needed.
+- Non-empty bucket: `synchronized` on **the first node of that bucket only**. Two threads writing to different buckets don't block each other.
+- Reads take no lock at all.
+- Resizing is helped along by several threads moving entries in parallel.
+- (Java 7 used "segments", 16 independently locked segments by default. Java 8 dropped that design.)
 
-The common bug is compound operations: check-then-put or get-then-put isn't atomic even on a concurrent map. I use `putIfAbsent`, `merge` or `computeIfAbsent`, for example `map.merge(key, 1, Integer::sum)` for counters."
+**Why nulls aren't allowed:** in a concurrent map, `get(key) == null` couldn't distinguish "key absent" from "value is null", because another thread can change the map between a `containsKey` call and a `get` call.
+
+**The common bug: compound operations aren't atomic.**
+
+```java
+// WRONG: two threads can both see "absent" and both put
+if (!map.containsKey(k)) map.put(k, 1);
+// WRONG: read then write, updates get lost
+map.put(k, map.get(k) + 1);
+
+// RIGHT: atomic
+map.putIfAbsent(k, 1);
+map.merge(k, 1, Integer::sum);
+map.computeIfAbsent(k, x -> new ArrayList<>()).add(v);
+```
+
+**When to use which:** almost always ConcurrentHashMap when a map is shared between threads, for example an in-memory cache. `synchronizedMap` only makes sense for quickly wrapping an existing map under low load.
 
 @@@ java-core-3 | Quan hệ giữa equals() và hashCode() là gì? / What is the contract between equals() and hashCode()? | java | | override
 ### Tiếng Việt
@@ -109,11 +147,35 @@ Hai object "bằng nhau" nhưng nằm ở hai bucket khác nhau, nên `HashSet` 
 
 ### English
 
-"If two objects are equal, they must have the same hash code; the reverse isn't required. If I override `equals` without `hashCode`, two equal objects get different default hash codes, land in different buckets, and a `HashSet` keeps duplicates while `HashMap.get` returns null for an equal key.
+**The contract:**
+1. If two objects are `equals`, their `hashCode` **must** be equal.
+2. Equal hash codes **don't** imply `equals` (that's a collision, which is acceptable).
+3. `equals` must be reflexive, symmetric, transitive and consistent, and `x.equals(null)` must return `false`.
 
-The second trap is mutating a key after insertion: the entry stays in the old bucket and becomes unreachable, so keys should be immutable.
+**If you override `equals` but forget `hashCode`:**
 
-In practice I use records, which generate both methods consistently, or `Objects.equals` and `Objects.hash`. For JPA entities I avoid the generated ID in `hashCode`, because it's null before persist and changes afterwards; I use a business key instead."
+```java
+class User {
+    String email;
+    @Override public boolean equals(Object o) {
+        return o instanceof User u && email.equals(u.email);
+    }
+    // forgot hashCode → Object's default hashCode (different for every object)
+}
+
+Set<User> set = new HashSet<>();
+set.add(new User("a@x.com"));
+set.contains(new User("a@x.com")); // false! different hash → wrong bucket
+```
+
+Two "equal" objects end up in two different buckets, so a `HashSet` fails to remove duplicates and `HashMap.get` returns `null`.
+
+**The second trap: mutating a key after it's in the map.** If you change a field used in `hashCode` after `put`, the entry stays in the old bucket and can never be found again. That's why keys should be immutable, such as `String`, `Integer` or a `record`.
+
+**How to write it correctly in practice:**
+- Use a **`record`** (Java 16+): it generates `equals`, `hashCode` and `toString` from all fields, and it's immutable.
+- Or use `Objects.equals(...)` and `Objects.hash(field1, field2)`, or let the IDE or Lombok `@EqualsAndHashCode` generate them.
+- **For JPA entities:** don't use the generated ID in `hashCode`, because the ID is `null` before persist and only gets a value afterwards, which changes the hash. Use a business key, or return a constant from `hashCode`.
 
 @@@ java-core-4 | Vì sao String là immutable? / Why is String immutable? | java | | override
 ### Tiếng Việt
@@ -146,11 +208,31 @@ String result = sb.toString();
 
 ### English
 
-"Four reasons. First, the string pool: many references share one literal, which is only safe if it can't change. Second, security: strings hold class names, file paths and connection details, and immutability means a value can't be changed after it's been validated. Third, thread safety for free. Fourth, the hash code is computed once and cached, which makes strings fast map keys.
+String is immutable: every "modifying" method such as `concat`, `replace` or `toUpperCase` returns a new object and leaves the original unchanged. There are four main reasons:
 
-The cost is that every modification creates a new object, so building a string in a loop with `+=` is O(n²); I use `StringBuilder` there. `StringBuffer` is the synchronized version and rarely needed.
+1. **The string pool:** many variables can point to the same literal `"hello"`. If strings were mutable, changing it through one variable would corrupt all the others. Immutability makes sharing safe and saves memory.
+2. **Security:** strings are used for class names during class loading, file paths, URLs and connection strings. If they could be changed after a permission check, an attacker could swap `/safe/file` for `/etc/passwd` between the check and the use.
+3. **Thread safety for free:** they can be shared between threads without synchronization.
+4. **Cached `hashCode`:** the hash is computed once and stored in the `hash` field, which makes String a very fast HashMap key. If strings were mutable, that cached hash would become wrong.
 
-A related point: passwords are better kept in a `char[]`, which can be wiped after use, because a String can't be cleared and stays in memory until it's collected."
+**Performance consequence:**
+
+```java
+// Slow: every iteration creates a new String, O(n²) characters copied
+String s = "";
+for (int i = 0; i < 10_000; i++) s += i;
+
+// Fast: one mutable buffer
+StringBuilder sb = new StringBuilder();
+for (int i = 0; i < 10_000; i++) sb.append(i);
+String result = sb.toString();
+```
+
+- `StringBuilder`: mutable, not synchronized, **the default choice**.
+- `StringBuffer`: mutable, `synchronized`, rarely needed.
+- Simple concatenation on one line (`a + b + c`) is optimized by the compiler, so it doesn't need a StringBuilder.
+
+**Follow-up question:** *"Why should passwords be kept in a `char[]` rather than a `String`?"* Because a String is immutable, it can't be wiped from memory and may stay there until the GC collects it. A `char[]` can be overwritten with zeros right after use.
 
 @@@ java-core-5 | ArrayList và LinkedList khác nhau thế nào? StringBuilder và StringBuffer? / ArrayList vs LinkedList? StringBuilder vs StringBuffer? | java | | override
 ### Tiếng Việt
@@ -171,11 +253,19 @@ A related point: passwords are better kept in a `char[]`, which can be wiped aft
 
 ### English
 
-"`ArrayList` is a resizable array: O(1) random access and amortized O(1) append, but O(n) insert in the middle because elements shift. It grows by about 1.5 times.
+| Operation | ArrayList (dynamic array) | LinkedList (doubly linked list) |
+|---|---|---|
+| `get(i)` | **O(1)** | O(n), must traverse |
+| `add(e)` at the end | O(1) amortized (occasionally grows the array) | O(1) |
+| Insert or remove in the middle | O(n), elements shift | O(1) **if you already hold the node**, but reaching it is O(n) |
+| Memory | Compact, elements are contiguous | Each element costs 2 extra pointers (prev, next) plus a node header |
+| CPU cache | **Very good** | Poor, nodes are scattered across the heap |
 
-`LinkedList` is a doubly linked list: O(1) insert or remove once you hold the node, but O(n) to reach it, extra memory for two pointers per element, and poor CPU cache locality. In practice `ArrayList` is faster for almost everything, even many middle inserts. For queues and stacks I use `ArrayDeque`.
+**Practical conclusion:** almost **always use ArrayList**. LinkedList's "O(1) insert" only helps when you already hold an iterator at the right position. In most cases, the cost of finding the position and the poor cache behavior make LinkedList slower, even for inserts.
+- For a queue or stack: use **`ArrayDeque`**, which is faster than both LinkedList and the legacy `Stack` class.
+- ArrayList grows by about 1.5 times (`old + old >> 1`). If you know the size, use `new ArrayList<>(n)`.
 
-`StringBuffer` is synchronized and `StringBuilder` isn't; I default to `StringBuilder` since a string is usually built by one thread."
+**StringBuilder vs StringBuffer:** both are mutable character sequences. `StringBuffer` has `synchronized` on every method, so it's slower. Default to `StringBuilder`, since a string is usually built by a single thread.
 
 @@@ java-core-6 | Checked và unchecked exception khác nhau thế nào? Bạn thiết kế xử lý lỗi trong service ra sao? / Checked vs unchecked exceptions, and how do you design error handling in a service? | java | | override
 ### Tiếng Việt
@@ -225,9 +315,48 @@ class GlobalHandler {
 
 ### English
 
-"`Throwable` splits into `Error`, which signals JVM problems such as `OutOfMemoryError` and shouldn't be caught, and `Exception`. Checked exceptions must be caught or declared; they're for recoverable, expected conditions like I/O failures. Unchecked ones extend `RuntimeException` and usually mean programming errors or business failures the caller can't recover from.
+**The hierarchy:**
 
-In a Spring service I use unchecked domain exceptions that carry an error code, and handle them in one place with `@RestControllerAdvice`, mapping each to an HTTP status and a consistent error body. Unknown exceptions become a 500 and are logged once, with the stack trace. I never swallow exceptions, never log and rethrow, which logs duplicates, and always keep the cause when wrapping. Unchecked exceptions also work better with lambdas and streams, which is one reason modern frameworks prefer them."
+```
+Throwable
+├── Error                      ← JVM problems, don't catch: OutOfMemoryError, StackOverflowError
+└── Exception
+    ├── IOException, SQLException...   ← checked
+    └── RuntimeException               ← unchecked
+        ├── NullPointerException
+        ├── IllegalArgumentException
+        └── ...
+```
+
+- **Checked:** the compiler forces you to `catch` it or declare `throws`. Used for errors that are **expected and recoverable**, such as a missing file or a network failure.
+- **Unchecked** (`RuntimeException`): handling isn't enforced. Usually caused by **programming errors** (null, invalid arguments) or business failures the caller can't do anything else about.
+- You create your own checked exception by extending `Exception`, or an unchecked one by extending `RuntimeException`.
+
+**How I design error handling in a Spring service:**
+
+1. Create **unchecked** domain exceptions that carry an error code: `OrderNotFoundException extends BusinessException`, where `BusinessException` holds an `errorCode`.
+2. Handle them centrally in one place with `@RestControllerAdvice`:
+
+```java
+@RestControllerAdvice
+class GlobalHandler {
+    @ExceptionHandler(OrderNotFoundException.class)
+    ResponseEntity<ErrorResponse> notFound(OrderNotFoundException e) {
+        return ResponseEntity.status(404).body(new ErrorResponse("ORDER_NOT_FOUND", e.getMessage()));
+    }
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ErrorResponse> unexpected(Exception e) {
+        log.error("Unexpected error", e);           // log once, with the stack trace
+        return ResponseEntity.status(500).body(new ErrorResponse("INTERNAL_ERROR", "Something went wrong"));
+    }
+}
+```
+
+3. **Don't** swallow exceptions (`catch (Exception e) {}`), **don't** log and then rethrow (it gets logged twice), and **don't** use exceptions for normal control flow.
+4. When wrapping an exception, keep the root cause: `throw new PaymentException("...", e)`.
+5. Never return stack traces or SQL details to the client.
+
+**Why Spring and many modern frameworks prefer unchecked exceptions:** checked exceptions spread `throws` clauses through every layer of method signatures, and they don't work inside lambdas and streams.
 
 @@@ jc-collection-map | Vì sao Map không kế thừa Collection? HashMap và TreeMap khác nhau thế nào? / Why doesn't Map extend Collection? HashMap vs TreeMap? | java | | override
 ### Tiếng Việt
@@ -272,11 +401,43 @@ class LRU<K, V> extends LinkedHashMap<K, V> {
 
 ### English
 
-"`Collection` models a group of single elements with `add(E)`; a map holds key-value pairs, so that method has no natural meaning. Instead `Map` exposes collection views: `keySet`, `values` and `entrySet`.
+**Why Map doesn't extend Collection:** `Collection` describes a group of **single elements** with `add(E e)`. A `Map` stores **key-value pairs**, so `add(E)` has no meaning: add what, the key, the value or the pair? Instead, Map provides three **collection views**:
+- `keySet()` returns a `Set<K>`
+- `values()` returns a `Collection<V>`
+- `entrySet()` returns a `Set<Map.Entry<K,V>>`
 
-`HashMap` is a hash table: O(1) average operations, no ordering, one null key allowed. `TreeMap` is a red-black tree: O(log n) operations, keys kept sorted, and it supports range queries like `floorKey`, `ceilingKey` and `subMap`. It rejects null keys with natural ordering, because it has to compare them.
+**The collections framework at a glance:**
 
-I use `TreeMap` when I need sorted iteration or range lookups, for example the nearest price below X. `LinkedHashMap` keeps insertion or access order, and with `removeEldestEntry` it becomes a simple LRU cache."
+```
+Collection
+├── List   → ArrayList, LinkedList        (ordered, duplicates allowed)
+├── Set    → HashSet, LinkedHashSet, TreeSet (no duplicates)
+└── Queue  → ArrayDeque, PriorityQueue
+Map (separate) → HashMap, LinkedHashMap, TreeMap, ConcurrentHashMap
+```
+
+**HashMap vs TreeMap:**
+
+| | HashMap | TreeMap |
+|---|---|---|
+| Structure | Bucket array + hashing | Red-black tree |
+| Iteration order | Not guaranteed | **Ascending by key** |
+| `get`, `put`, `remove` | O(1) average | **O(log n)** |
+| `null` key | One allowed | **No**: throws `NullPointerException` because keys must be compared |
+| Requirement on keys | `equals` + `hashCode` | `Comparable`, or pass a `Comparator` |
+| Extra API | — | `firstKey`, `lastKey`, `floorKey`, `ceilingKey`, `headMap`, `subMap` |
+
+**When to use TreeMap:** when you need sorted iteration or range queries. For example: finding the nearest price less than or equal to X with `floorKey(x)`, or getting the events in a time range with `subMap(from, to)`.
+
+**LinkedHashMap:** keeps insertion order, or access order when created with `accessOrder = true`. That's the quickest way to build an LRU cache:
+
+```java
+class LRU<K, V> extends LinkedHashMap<K, V> {
+    private final int cap;
+    LRU(int cap) { super(16, 0.75f, true); this.cap = cap; }
+    @Override protected boolean removeEldestEntry(Map.Entry<K, V> e) { return size() > cap; }
+}
+```
 
 @@@ jc-string-pool | String constant pool là gì? String được lưu ở đâu? / What is the String constant pool, and where do strings live? | java | | override
 ### Tiếng Việt
@@ -316,9 +477,38 @@ z == y                      // false
 
 ### English
 
-"String literals are interned in the string pool, which has lived in the heap since Java 7, not in PermGen. Two identical literals refer to the same object, so `==` is true for them, while `new String("hi")` always creates a new heap object: `==` is false but `equals` is true. `new String("hi")` can create up to two objects, the pooled literal and the new one. `intern()` returns the pooled instance.
+The **string pool** is a special memory area that holds String literals so they can be reused instead of creating many identical copies. **Since Java 7 the pool lives in the heap** (before that it was in PermGen), so it's garbage-collected like ordinary objects.
 
-Compile-time constants like `"a" + "b"` are folded into one pooled literal, but concatenation at runtime creates new objects. The practical rule is to always compare strings with `equals`. Sharing pooled strings is only safe because `String` is immutable."
+```java
+String a = "hi";               // literal → taken from the pool (created if absent)
+String b = "hi";               // points to the SAME object as a
+String c = new String("hi");   // always creates a NEW object on the heap
+String d = c.intern();         // returns the pooled instance
+
+a == b      // true  (same object)
+a == c      // false (different objects)
+a.equals(c) // true  (same content)
+a == d      // true
+```
+
+**Trick question:** *"How many objects does `new String("hi")` create?"* Up to **2**: the literal `"hi"` in the pool (if not already there) and one new object on the heap.
+
+**Concatenation:**
+
+```java
+String x = "a" + "b";      // compile-time constants → folded into "ab", pooled
+String y = "ab";
+x == y                      // true
+
+String part = "a";
+String z = part + "b";     // concatenated at runtime → new object
+z == y                      // false
+```
+
+**Takeaways:**
+- **Always compare strings with `equals`**, never with `==`.
+- `intern()` can save memory when there are huge numbers of duplicate strings (for example country codes read from a file), but it's rarely needed. Modern JVMs also offer `-XX:+UseStringDeduplication` with G1.
+- The pool can be shared safely **only because String is immutable**.
 
 @@@ jc-abstraction-encapsulation | Abstraction và encapsulation khác nhau thế nào? Có encapsulation mà không có abstraction được không? / Abstraction vs encapsulation: can you have encapsulation without abstraction? | java | | override
 ### Tiếng Việt
@@ -353,9 +543,33 @@ class BankAccount {
 
 ### English
 
-"Abstraction is about what an object exposes: it hides implementation details behind a contract, such as a `PaymentGateway.charge()` interface that hides which provider is used. Encapsulation is about protecting state: fields are private and changed only through methods that keep invariants valid, such as a `withdraw` method that refuses to make a balance negative.
+| | Abstraction | Encapsulation |
+|---|---|---|
+| Answers the question | **What can** the object do? | How is the data **protected**? |
+| Purpose | Hide **implementation details**, expose only a contract | Hide **state**, allow changes only through valid methods |
+| Tools | `interface`, `abstract class` | `private` fields, validating getters/setters, immutability |
+| Example | `PaymentGateway.charge()`: the caller doesn't need to know whether VNPay or Stripe is behind it | `BankAccount` with a `private balance`, changed only through `withdraw()`, which checks the balance |
 
-Yes, you can have encapsulation without abstraction. A class with private fields and plain getters and setters is technically encapsulated but abstracts nothing: callers still depend on every field. Good design combines both: a small, meaningful interface and state that only the class itself can change consistently."
+```java
+// Abstraction: the caller only knows the contract
+interface PaymentGateway { Receipt charge(Money amount); }
+
+// Encapsulation: protects the invariant "balance is never negative"
+class BankAccount {
+    private long balance;                       // nobody can change it directly
+    void withdraw(long amount) {
+        if (amount > balance) throw new InsufficientFundsException();
+        balance -= amount;
+    }
+    long balance() { return balance; }
+}
+```
+
+**Can you have encapsulation without abstraction?** **Yes.** A class with only `private` fields and plain getters and setters is encapsulated (in form), but it abstracts nothing: callers still have to know and depend on every field. Such classes are often called an "anemic model".
+
+**The reverse** is also possible: a clean interface whose implementation exposes `public` fields has abstraction but poor encapsulation.
+
+**Good design uses both:** a small, clear interface (abstraction), and internal state that only the class itself can change and always keeps valid (encapsulation).
 
 @@@ jc-interface-private | Interface có private method được không? Để làm gì? / Can an interface have private methods? Why would it? | java | | override
 ### Tiếng Việt
@@ -391,9 +605,34 @@ interface ReportExporter {
 
 ### English
 
-"Yes, since Java 9. Java 8 added default and static methods, so interfaces started carrying real code; Java 9 added private and private static methods so those default methods can share helper logic without exposing it as part of the public contract.
+**Yes, since Java 9.** How interfaces evolved:
 
-Interfaces still can't hold instance state: fields are always public static final. If a class implements two interfaces with the same default method, it must override it and can pick one with `InterfaceName.super.method()`. When I need shared state, a constructor or protected methods, an abstract class is the better fit."
+| Java | An interface can contain |
+|---|---|
+| ≤ 7 | Only abstract methods and `public static final` constants |
+| 8 | Adds **`default`** methods (with a body) and **`static`** methods |
+| 9 | Adds **`private`** and **`private static`** methods |
+
+**Why they're needed:** since Java 8, interfaces contain real code in `default` methods. When several default methods share some logic, a private method lets them **reuse it without exposing it**, because it isn't part of the public contract.
+
+```java
+interface ReportExporter {
+    default String toCsv(List<Row> rows)  { return header() + join(rows, ","); }
+    default String toTsv(List<Row> rows)  { return header() + join(rows, "\t"); }
+
+    private String join(List<Row> rows, String sep) {      // shared helper, not public
+        return rows.stream().map(r -> r.format(sep)).collect(Collectors.joining("\n"));
+    }
+    private static String header() { return "id,name,amount\n"; }
+}
+```
+
+**Limits that still apply:**
+- Interfaces have **no instance state**: fields are always `public static final`.
+- A private method **can't** be `default` or `abstract`.
+- If a class implements two interfaces with default methods of the same signature, it **must override** the method to choose, for example by calling `A.super.method()`.
+
+**When to use an abstract class instead of an interface:** when you need shared state, a constructor, or `protected` methods.
 
 @@@ jc-ocp-violation | Có khi nào được phép vi phạm nguyên tắc Open/Closed không? / Is it ever acceptable to violate the Open/Closed Principle? | java | | override
 ### Tiếng Việt
@@ -428,9 +667,33 @@ class WalletFee implements FeePolicy { public long fee(long a) { return 1_000; }
 
 ### English
 
-"Yes, when the cost of the abstraction outweighs the benefit. In a small codebase, a prototype or an urgent fix, adding a case to an existing switch is simpler and clearer than creating an interface with a single implementation; that's YAGNI. Abstracting too early often produces the wrong abstraction, which is more expensive than editing code.
+**A reminder of OCP:** code should be **open for extension, closed for modification**. A new feature is added by adding a new class, not by editing code that already works.
 
-I apply OCP where variation is real and recurring, such as payment methods, fee rules or notification channels. A practical trigger is the rule of three: the third time I edit the same switch for a new variant, I extract an interface. With Java 21, a sealed interface plus an exhaustive switch is a middle ground: changes are still edits, but the compiler shows every place that must be updated."
+```java
+// Violates OCP: adding a payment method means editing the switch
+long fee(PaymentType t, long amount) {
+    return switch (t) {
+        case CARD -> amount * 2 / 100;
+        case WALLET -> 1_000;
+    };
+}
+
+// Follows OCP: a new type = a new class implementing the interface
+interface FeePolicy { long fee(long amount); }
+class CardFee implements FeePolicy { public long fee(long a) { return a * 2 / 100; } }
+class WalletFee implements FeePolicy { public long fee(long a) { return 1_000; } }
+```
+
+**Yes, sometimes violating it is the right call:**
+- **Small projects, prototypes, urgent fixes:** adding a simple `case` is easier to read than creating an interface with a single implementation. That's **YAGNI** (You Aren't Gonna Need It).
+- **When it's unclear whether more variants will appear:** abstracting too early creates the "wrong abstraction", which costs more than editing code.
+- **The rule of three:** only when you edit the same `switch` for the third time to add a variant do you extract an interface.
+
+**Follow OCP when:** variation is real, recurring and likely to grow, for example payment methods, fee rules, notification channels or plugins.
+
+**A middle ground in Java 21:** a `sealed interface` combined with an exhaustive `switch`. You still edit code, but **the compiler reports an error** at every place that must change when you add a new type, so nothing is missed.
+
+**A real example to tell:** *"At DXC, [insurance premium calculation by product type]: it started as a `switch`, and when the third product arrived I extracted a strategy..."* (replace with your own story).
 
 @@@ jc-finally | Khối finally có thể làm mất exception từ try không? / Can a finally block override an exception thrown in try? | java | | override
 ### Tiếng Việt
@@ -478,11 +741,46 @@ Nếu cả thân `try` lẫn `close()` cùng ném lỗi, exception của `close(
 
 ### English
 
-"Yes. If the finally block returns or throws a new exception, the original exception from try is silently discarded, which is why a return inside finally is considered a bug and linters flag it.
+**Yes.** If the `finally` block contains a `return` or throws a new exception, the original exception from `try` is **completely lost**, with no log or trace.
 
-Related details: finally runs even when try returns, but the return value is already evaluated, so reassigning a local variable in finally doesn't change what's returned, although mutating a returned object does show. Finally doesn't run on `System.exit` or if the JVM crashes.
+```java
+static int test() {
+    try {
+        throw new IllegalStateException("the real error");
+    } finally {
+        return 1;          // "the real error" disappears, the method returns 1
+    }
+}
+```
 
-For resources I use try-with-resources: resources are closed automatically in reverse order, and if `close()` also throws, that exception is attached to the original as a suppressed exception instead of replacing it."
+That's why you should **never `return` inside `finally`**. Most linters and IDEs warn about it.
+
+**Details interviewers often follow up on:**
+
+1. **`finally` still runs when `try` returns**. But the return value is computed before `finally` runs:
+
+```java
+static int value() {
+    int x = 1;
+    try { return x; }          // the value 1 is already "captured"
+    finally { x = 99; }        // no effect → the method returns 1
+}
+```
+
+Note: if you return an **object** and `finally` changes that object's contents (for example `list.add(...)`), the caller will see the change, because only the reference was captured.
+
+2. **`finally` doesn't run** when `System.exit()` is called, when the JVM is killed or crashes, or when the thread hangs forever inside `try`.
+
+3. **The right way to close resources: try-with-resources (Java 7+)**
+
+```java
+try (Connection c = ds.getConnection();
+     PreparedStatement ps = c.prepareStatement(sql)) {
+    ...
+}   // closed automatically, in reverse order
+```
+
+If both the `try` body and `close()` throw, the exception from `close()` is kept as a **suppressed** exception (available through `e.getSuppressed()`), and the original exception isn't lost. That's a big advantage over writing `finally { c.close(); }` by hand.
 
 @@@ jc-generics | Generics: type erasure là gì? Wildcard ? extends và ? super dùng khi nào? / Generics: what is type erasure, and when do you use ? extends vs ? super? | java | java-core,generics | qa | Java core
 ### Tiếng Việt
@@ -538,6 +836,52 @@ Ví dụ trong JDK: `Collections.copy(List<? super T> dest, List<? extends T> sr
 
 ### English
 
-"Generics give compile-time type safety. They're implemented with type erasure: generic type information exists only at compile time, and at runtime `List<String>` is just `List`, with `T` replaced by `Object` or its bound. That was done for backward compatibility. Consequences: you can't write `new T()`, create a generic array, check `instanceof List<String>`, or overload methods that differ only in type parameters. When I need the type at runtime, I pass a `Class<T>` or a type token.
+**Generics** enable type checking at compile time: a `List<String>` won't accept an `Integer`, and you don't need casts when reading elements.
 
-Generics are invariant: `List<Integer>` isn't a `List<Number>`, otherwise you could add a Double to a list of Integers. Wildcards add flexibility, following PECS, producer extends, consumer super. If a collection produces values that I read, I use `? extends T`; if it consumes values that I write, I use `? super T`. `Collections.copy` is the classic example: the source is `? extends T` and the destination is `? super T`."
+**Type erasure:** generic type information **exists only at compile time**. After compilation, `List<String>` and `List<Integer>` are both just `List`, and `T` is replaced with `Object` (or with its upper bound, so `T extends Number` becomes `Number`). Java did this for **backward compatibility** with code written before Java 5.
+
+**Consequences of erasure (frequently asked):**
+
+```java
+new T();                          // ✗ T is unknown at runtime
+new T[10];                        // ✗
+obj instanceof List<String>       // ✗ only allowed: obj instanceof List<?>
+List<String>.class                // ✗
+// Two methods that differ only in generic type → same signature after erasure:
+void f(List<String> a) {}
+void f(List<Integer> a) {}        // ✗ "same erasure" error
+```
+
+Workarounds when you need the type at runtime: pass a `Class<T>`, for example `objectMapper.readValue(json, User.class)`, or use Jackson's `TypeReference<List<User>>`.
+
+**Generics are invariant:** `List<Integer>` is **not** a subtype of `List<Number>`, even though `Integer` is a subtype of `Number`. If it were, you could add a `Double` to a list that may only contain `Integer`s.
+
+**Wildcards and the PECS rule (Producer Extends, Consumer Super):**
+
+| | `? extends T` | `? super T` |
+|---|---|---|
+| Meaning | T or a subclass of T | T or a superclass of T |
+| Reading | Allowed, you get a `T` | You only get an `Object` |
+| Writing | **Not allowed** (except `null`) | **Allowed**, you can write a `T` |
+| Use when | The collection is a **source of data** (producer) | The collection is a **destination** (consumer) |
+
+```java
+// Producer: only read numbers to add them up → extends
+double sum(List<? extends Number> nums) {
+    double s = 0;
+    for (Number n : nums) s += n.doubleValue();
+    return s;
+}
+sum(List.of(1, 2, 3));        // a List<Integer> works
+sum(List.of(1.5, 2.5));       // a List<Double> works
+
+// Consumer: only write Integers into it → super
+void fill(List<? super Integer> out) {
+    for (int i = 0; i < 3; i++) out.add(i);
+}
+fill(new ArrayList<Number>()); // works
+fill(new ArrayList<Object>()); // works
+```
+
+A JDK example: `Collections.copy(List<? super T> dest, List<? extends T> src)`. The source uses `extends`, the destination uses `super`.
+
