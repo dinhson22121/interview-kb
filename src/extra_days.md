@@ -37,12 +37,11 @@
 @@@ day-2 | Day 2: JVM & concurrency | plan | lo-trinh | guide | Day 2
 **Mục tiêu:** Bộ nhớ JVM, GC, class loader, thread pool, virtual threads, Java 8–21.
 
-### Lý thuyết (12 câu)
+### Lý thuyết (19 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [Explain the Stream API. What is the difference between map and flatMap?](#java-modern-7)
-- [ ] [What newer Java features have you used?](#java-modern-8)
 - [ ] [What is Optional for, and how is it misused?](#java-modern-9)
 - [ ] [Describe the JVM memory areas.](#jvm-10)
 - [ ] [Which garbage collectors do you know, and how do you choose?](#jvm-11)
@@ -53,6 +52,14 @@
 - [ ] [What are virtual threads and when would you use them?](#concurrency-16)
 - [ ] [What is a deadlock and how do you prevent and diagnose it?](#concurrency-17)
 - [ ] [How do you run several remote calls in parallel and combine the results?](#concurrency-18)
+- [ ] [What newer Java features have you used?](#java-modern-8)
+- [ ] [Các phiên bản Java LTS và tính năng chính của từng bản? Nên dùng bản nào?](#jn-versions)
+- [ ] [Record là gì? Khi nào dùng, khi nào không?](#jn-records)
+- [ ] [Sealed class và pattern matching (instanceof, switch, record pattern) dùng thế nào?](#jn-sealed-pattern)
+- [ ] [Những tính năng nhỏ hay dùng từ Java 9 đến 21 là gì?](#jn-small-features)
+- [ ] [Virtual threads hoạt động thế nào? Bẫy khi dùng là gì?](#jn-virtual-threads)
+- [ ] [Scoped values và structured concurrency là gì?](#jn-scoped-structured)
+- [ ] [Java 25 (LTS) có gì mới đáng chú ý?](#jn-java25)
 
 ### Coding: Arrays & hashing
 
@@ -72,7 +79,7 @@
 @@@ day-3 | Day 3: Spring & Spring Boot | plan | lo-trinh | guide | Day 3
 **Mục tiêu:** IoC, bean lifecycle, @Transactional, AOP, auto-configuration, Security, MVC.
 
-### Lý thuyết (14 câu)
+### Lý thuyết (19 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -90,6 +97,11 @@
 - [ ] [What is DispatcherServlet? Walk through the Spring MVC request flow.](#sp-dispatcher)
 - [ ] [@RequestParam vs @PathVariable: can you use both in one method?](#sp-param-path)
 - [ ] [How do you configure different databases per environment?](#sp-profiles)
+- [ ] [Spring Boot 2, 3, 4 khác nhau thế nào? Nâng cấp cần chú ý gì?](#sn-versions)
+- [ ] [Spring Boot 3.x có những tính năng mới nào đáng dùng?](#sn-boot3)
+- [ ] [RestTemplate, WebClient, RestClient và HTTP interface: nên dùng cái nào?](#sn-http-clients)
+- [ ] [Spring Boot 4](#sn-boot4)
+- [ ] [Làm sao để ứng dụng Spring khởi động nhanh và tốn ít bộ nhớ: GraalVM native, CDS hay AOT cache?](#sn-startup)
 
 ### Coding: Two pointers
 
@@ -171,7 +183,6 @@
 
 - [ ] [Monolith vs microservices: when would you choose each?](#microservices-1)
 - [ ] [How do services communicate, and how do you choose sync vs async?](#microservices-2)
-- [ ] [What is the outbox pattern?](#microservices-4)
 - [ ] [How do you make an operation idempotent?](#microservices-5)
 - [ ] [How do you make calls between services resilient?](#microservices-6)
 - [ ] [What does an API gateway do? How is authentication handled across services?](#microservices-7)
@@ -180,6 +191,7 @@
 - [ ] [What are REST principles? Is REST always stateless?](#arch-rest)
 - [ ] [What happens if a circuit breaker stays open too long?](#arch-cb-open)
 - [ ] [Làm sao giữ dữ liệu nhất quán giữa các service? Saga pattern là gì?](#microservices-3)
+- [ ] [Outbox pattern là gì? Hoạt động cụ thể thế nào?](#microservices-4)
 - [ ] [Explain topics, partitions, offsets and consumer groups.](#kafka-10)
 - [ ] [What is a message key and why use it?](#kafka-11)
 - [ ] [What delivery guarantees does Kafka offer?](#kafka-12)
