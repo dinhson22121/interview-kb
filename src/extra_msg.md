@@ -453,7 +453,7 @@ Framework support: Apache Seata (TCC mode).
 
 **Cây quyết định khi trả lời phỏng vấn:**
 1. Có thể **gom dữ liệu về một service hoặc một database** không? Nếu được thì dùng transaction cục bộ: đơn giản nhất. Ranh giới service sai thường là nguồn gốc của nhu cầu distributed transaction.
-2. Chỉ cần "cập nhật DB **và** phát sự kiện"? Dùng **outbox**.
+2. Chỉ cần "cập nhật DB **và** phát sự kiện"? Dùng **outbox** (chi tiết: [Outbox pattern](#microservices-4)).
 3. Luồng nhiều service, chấp nhận trạng thái trung gian? Dùng **Saga**: orchestration nếu luồng dài, choreography nếu ngắn.
 4. Cần giữ chỗ tài nguyên khan hiếm, không muốn người khác thấy trạng thái trung gian? Dùng **TCC**.
 5. Bắt buộc nhất quán tức thì, ít tài nguyên, cùng mạng? Cân nhắc **2PC**, chấp nhận chi phí.
@@ -474,9 +474,222 @@ Framework support: Apache Seata (TCC mode).
 
 **A decision tree for interviews:**
 1. Can the data **live in one service or one database**? If so, use a local transaction: simplest. Wrong service boundaries are often what creates the need for distributed transactions.
-2. Do you only need to "update the DB **and** publish an event"? Use an **outbox**.
+2. Do you only need to "update the DB **and** publish an event"? Use an **outbox** (details: [Outbox pattern](#microservices-4)).
 3. A flow across several services where intermediate states are acceptable? Use a **saga**: orchestration for long flows, choreography for short ones.
 4. Need to reserve scarce resources without others seeing intermediate state? Use **TCC**.
 5. Immediate consistency is mandatory, with few resources on the same network? Consider **2PC** and accept the cost.
 
 **A real story to tell:** *"At [Opswat/DXC], [flow X] spanned [N] services; we used [outbox/saga/...] and handled duplicates with [idempotency keys]..."* (fill in your real story).
+
+@@@ microservices-4 | Outbox pattern là gì? Hoạt động cụ thể thế nào? / What is the outbox pattern, and how exactly does it work? | messaging | | override
+### Tiếng Việt
+
+**1. Vấn đề cần giải quyết: dual write (ghi hai nơi)**
+
+Order service cần làm hai việc: lưu đơn vào PostgreSQL **và** gửi sự kiện `OrderCreated` lên Kafka để Payment và Inventory xử lý tiếp. Hai hệ thống này **không có transaction chung**, nên dù viết theo thứ tự nào cũng có lỗi:
+
+| Cách viết | Lỗi xảy ra khi | Hậu quả |
+|---|---|---|
+| Lưu DB, rồi gửi Kafka | App chết hoặc Kafka lỗi **sau khi commit** | Có đơn nhưng **không ai nhận sự kiện**: không thanh toán, không trừ kho |
+| Gửi Kafka, rồi lưu DB | DB rollback (vi phạm ràng buộc, timeout) | Hệ thống khác xử lý một **đơn không tồn tại** |
+| Gửi Kafka **bên trong** `@Transactional` | Gửi xong thì transaction rollback | Giống trường hợp trên |
+| `@TransactionalEventListener(AFTER_COMMIT)` | App chết ngay sau commit | Sự kiện chỉ nằm trong RAM nên **mất** |
+
+**2. Ý tưởng:** không gửi trực tiếp lên broker. Ghi sự kiện vào một **bảng `outbox` trong cùng database, cùng transaction** với dữ liệu nghiệp vụ. Một transaction local là atomic: hoặc có cả đơn lẫn sự kiện, hoặc không có gì. Sau đó một tiến trình riêng (**relay**) đọc bảng outbox và đẩy lên Kafka.
+
+```
+[Order service]                                   
+  BEGIN
+    INSERT INTO orders ...                        
+    INSERT INTO outbox ...      ← cùng transaction
+  COMMIT
+            │
+            ▼
+[Relay: polling hoặc CDC] ──► Kafka topic "order.events" ──► Payment, Inventory
+```
+
+**3. Bảng outbox:**
+
+```sql
+CREATE TABLE outbox (
+    id             uuid PRIMARY KEY,          -- cũng dùng làm eventId để consumer chống trùng
+    aggregate_type varchar(50)  NOT NULL,     -- 'Order' → chọn topic
+    aggregate_id   varchar(50)  NOT NULL,     -- orderId → làm Kafka key để giữ thứ tự theo đơn
+    event_type     varchar(100) NOT NULL,     -- 'OrderCreated'
+    payload        jsonb        NOT NULL,
+    created_at     timestamptz  NOT NULL DEFAULT now(),
+    published_at   timestamptz                -- NULL = chưa gửi (chỉ cần cho cách polling)
+);
+CREATE INDEX idx_outbox_unpublished ON outbox (created_at) WHERE published_at IS NULL;
+```
+
+**4. Code ghi (Spring):**
+
+```java
+@Transactional
+public Order createOrder(CreateOrderCommand cmd) {
+    Order order = orderRepository.save(Order.from(cmd));
+    outboxRepository.save(new OutboxEvent(
+        UUID.randomUUID(), "Order", order.getId().toString(),
+        "OrderCreated", toJson(new OrderCreated(order.getId(), order.getTotal()))));
+    return order;   // KHÔNG gọi kafkaTemplate ở đây
+}
+```
+
+**5. Relay, hai cách:**
+
+**a) Polling publisher:** một job chạy mỗi 0,5–1 giây.
+
+```java
+@Scheduled(fixedDelay = 500)
+@Transactional
+public void publish() {
+    // SKIP LOCKED: nhiều instance cùng chạy mà không lấy trùng dòng
+    List<OutboxEvent> batch = em.createNativeQuery("""
+        SELECT * FROM outbox WHERE published_at IS NULL
+        ORDER BY created_at LIMIT 100 FOR UPDATE SKIP LOCKED""", OutboxEvent.class).getResultList();
+    for (OutboxEvent e : batch) {
+        kafkaTemplate.send("order.events", e.getAggregateId(), e.getPayload()).get(); // chờ broker ack
+        e.setPublishedAt(Instant.now());
+    }
+}
+```
+
+- Ưu: đơn giản, không cần thêm hạ tầng.
+- Nhược: độ trễ bằng chu kỳ poll, query liên tục vào DB, và bảng phải dọn định kỳ.
+
+**b) CDC (Change Data Capture) với Debezium:** Debezium đọc **WAL của PostgreSQL** (hoặc binlog của MySQL), thấy dòng mới trong `outbox` thì đẩy lên Kafka. Debezium có sẵn **Outbox Event Router** để chọn topic theo `aggregate_type` và dùng `aggregate_id` làm key.
+
+- Ưu: độ trễ thấp (mili giây), không poll DB, thứ tự đúng theo thứ tự commit.
+- Nhược: phải vận hành Kafka Connect và Debezium, cấu hình replication slot. Slot bị bỏ quên thì WAL phình to và có thể làm đầy đĩa.
+- Với CDC có thể xóa dòng outbox ngay trong cùng transaction (INSERT rồi DELETE), vì Debezium vẫn đọc được từ WAL, nên bảng luôn nhỏ.
+
+**6. Đảm bảo giao hàng: at-least-once, không phải exactly-once.** Relay có thể gửi xong lên Kafka nhưng chết trước khi đánh dấu `published_at`, nên lần sau sẽ **gửi lại**. Vì vậy **consumer bắt buộc phải idempotent**. Cách phổ biến là bảng ghi nhận sự kiện đã xử lý (còn gọi là **inbox pattern**):
+
+```java
+@KafkaListener(topics = "order.events")
+@Transactional
+public void on(ConsumerRecord<String, String> rec) {
+    UUID eventId = UUID.fromString(new String(rec.headers().lastHeader("id").value()));
+    // INSERT ... ON CONFLICT DO NOTHING trả về 0 nếu đã xử lý rồi
+    if (processedRepo.insertIfAbsent(eventId) == 0) return;   // trùng → bỏ qua
+    paymentService.charge(parse(rec.value()));                 // cùng transaction với dòng processed
+}
+```
+
+**7. Thứ tự:** dùng `aggregate_id` làm Kafka key, nên mọi sự kiện của cùng một đơn vào **cùng partition**, tức đúng thứ tự. Với polling, thứ tự theo `created_at` có thể lệch nhẹ khi nhiều transaction commit đồng thời; nếu cần chặt chẽ thì dùng CDC, hoặc thêm cột version để consumer bỏ qua sự kiện cũ hơn.
+
+**8. Vận hành:**
+- **Dọn bảng:** xóa dòng đã gửi quá N ngày, hoặc partition bảng theo ngày rồi drop partition cũ.
+- **Giám sát:** số dòng chưa gửi và tuổi của dòng cũ nhất. Tăng dần nghĩa là relay đang kẹt.
+- **Schema sự kiện:** coi payload là hợp đồng công khai, có version, dùng Avro hoặc JSON Schema với Schema Registry.
+
+**9. Khi nào không cần outbox:** khi mất sự kiện cũng chấp nhận được (log, analytics), hoặc khi sự kiện **chính là** nguồn sự thật (event sourcing, ghi thẳng vào Kafka rồi các service tự xây trạng thái từ đó).
+
+**Câu trả lời mẫu (khoảng 45 giây):** *"Outbox giải quyết bài toán dual write: không thể commit DB và gửi Kafka một cách atomic. Tôi ghi thay đổi nghiệp vụ và một dòng outbox trong cùng transaction local, rồi một relay, polling với `FOR UPDATE SKIP LOCKED` hoặc Debezium đọc WAL, đẩy dòng đó lên Kafka với key là aggregate id để giữ thứ tự. Đảm bảo là at-least-once, nên mỗi sự kiện có id và consumer chống trùng bằng bảng processed-events trong cùng transaction với xử lý nghiệp vụ."*
+
+### English
+
+**1. The problem: dual writes**
+
+The Order service has to do two things: save the order in PostgreSQL **and** publish an `OrderCreated` event to Kafka so Payment and Inventory can continue. The two systems **share no transaction**, so every ordering has a failure mode:
+
+| Approach | Fails when | Consequence |
+|---|---|---|
+| Save to the DB, then send to Kafka | The app crashes or Kafka fails **after the commit** | The order exists but **nobody receives the event**: no payment, no stock reservation |
+| Send to Kafka, then save to the DB | The DB rolls back (constraint violation, timeout) | Other systems process an **order that doesn't exist** |
+| Send to Kafka **inside** `@Transactional` | The transaction rolls back after the send | Same as above |
+| `@TransactionalEventListener(AFTER_COMMIT)` | The app crashes right after the commit | The event lived only in memory, so it's **lost** |
+
+**2. The idea:** don't send directly to the broker. Write the event to an **`outbox` table in the same database, in the same transaction** as the business data. A local transaction is atomic: either both the order and the event exist, or neither does. A separate process (the **relay**) then reads the outbox table and pushes the events to Kafka.
+
+```
+[Order service]
+  BEGIN
+    INSERT INTO orders ...
+    INSERT INTO outbox ...      ← same transaction
+  COMMIT
+            │
+            ▼
+[Relay: polling or CDC] ──► Kafka topic "order.events" ──► Payment, Inventory
+```
+
+**3. The outbox table:**
+
+```sql
+CREATE TABLE outbox (
+    id             uuid PRIMARY KEY,          -- also the eventId consumers use for deduplication
+    aggregate_type varchar(50)  NOT NULL,     -- 'Order' → selects the topic
+    aggregate_id   varchar(50)  NOT NULL,     -- orderId → the Kafka key, preserving per-order ordering
+    event_type     varchar(100) NOT NULL,     -- 'OrderCreated'
+    payload        jsonb        NOT NULL,
+    created_at     timestamptz  NOT NULL DEFAULT now(),
+    published_at   timestamptz                -- NULL = not yet sent (only needed for polling)
+);
+CREATE INDEX idx_outbox_unpublished ON outbox (created_at) WHERE published_at IS NULL;
+```
+
+**4. The write side (Spring):**
+
+```java
+@Transactional
+public Order createOrder(CreateOrderCommand cmd) {
+    Order order = orderRepository.save(Order.from(cmd));
+    outboxRepository.save(new OutboxEvent(
+        UUID.randomUUID(), "Order", order.getId().toString(),
+        "OrderCreated", toJson(new OrderCreated(order.getId(), order.getTotal()))));
+    return order;   // do NOT call kafkaTemplate here
+}
+```
+
+**5. The relay, two options:**
+
+**a) Polling publisher:** a job that runs every 0.5–1 seconds.
+
+```java
+@Scheduled(fixedDelay = 500)
+@Transactional
+public void publish() {
+    // SKIP LOCKED: several instances can run without picking the same rows
+    List<OutboxEvent> batch = em.createNativeQuery("""
+        SELECT * FROM outbox WHERE published_at IS NULL
+        ORDER BY created_at LIMIT 100 FOR UPDATE SKIP LOCKED""", OutboxEvent.class).getResultList();
+    for (OutboxEvent e : batch) {
+        kafkaTemplate.send("order.events", e.getAggregateId(), e.getPayload()).get(); // wait for the broker ack
+        e.setPublishedAt(Instant.now());
+    }
+}
+```
+
+- Pros: simple, no extra infrastructure.
+- Cons: latency equals the poll interval, constant queries against the DB, and the table needs periodic cleanup.
+
+**b) CDC (Change Data Capture) with Debezium:** Debezium reads **PostgreSQL's WAL** (or MySQL's binlog), sees new rows in `outbox` and pushes them to Kafka. Debezium ships an **Outbox Event Router** that picks the topic from `aggregate_type` and uses `aggregate_id` as the key.
+
+- Pros: low latency (milliseconds), no DB polling, ordering matches commit order.
+- Cons: you have to run Kafka Connect and Debezium and configure a replication slot. A forgotten slot makes the WAL grow and can fill the disk.
+- With CDC you can delete the outbox row in the same transaction (INSERT then DELETE), because Debezium still reads it from the WAL, so the table always stays small.
+
+**6. Delivery guarantee: at-least-once, not exactly-once.** The relay can send to Kafka and crash before marking `published_at`, so it **sends again** next time. That's why **consumers must be idempotent**. The common approach is a table of processed events (also called the **inbox pattern**):
+
+```java
+@KafkaListener(topics = "order.events")
+@Transactional
+public void on(ConsumerRecord<String, String> rec) {
+    UUID eventId = UUID.fromString(new String(rec.headers().lastHeader("id").value()));
+    // INSERT ... ON CONFLICT DO NOTHING returns 0 if it was already processed
+    if (processedRepo.insertIfAbsent(eventId) == 0) return;   // duplicate → skip
+    paymentService.charge(parse(rec.value()));                 // same transaction as the processed row
+}
+```
+
+**7. Ordering:** `aggregate_id` is the Kafka key, so every event for the same order lands in the **same partition**, in order. With polling, `created_at` order can be slightly off when several transactions commit concurrently; if you need it strict, use CDC, or add a version column so consumers ignore events older than what they've seen.
+
+**8. Operations:**
+- **Cleanup:** delete rows sent more than N days ago, or partition the table by day and drop old partitions.
+- **Monitoring:** the number of unsent rows and the age of the oldest one. If they keep growing, the relay is stuck.
+- **Event schema:** treat the payload as a public contract, version it, and use Avro or JSON Schema with a Schema Registry.
+
+**9. When you don't need an outbox:** when losing an event is acceptable (logs, analytics), or when the event **is** the source of truth (event sourcing: write straight to Kafka and let services build their state from it).
+
+**A model answer (about 45 seconds):** *"The outbox solves the dual-write problem: you can't commit to the database and publish to Kafka atomically. I write the business change and an outbox row in the same local transaction, and a relay, either polling with `FOR UPDATE SKIP LOCKED` or Debezium reading the WAL, pushes that row to Kafka keyed by the aggregate id to preserve ordering. The guarantee is at-least-once, so every event carries an id and consumers deduplicate with a processed-events table in the same transaction as the business logic."*

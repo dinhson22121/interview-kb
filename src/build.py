@@ -173,7 +173,7 @@ DATA_SECTIONS = {'Database', 'PostgreSQL internals', 'SQL nâng cao', 'SQL'}
 for a in articles:
     if a['kind'] != 'qa':
         continue
-    if a['section'] == 'Kafka và messaging' or a['id'] == 'microservices-3':
+    if a['section'] == 'Kafka và messaging' or a['id'] in ('microservices-3', 'microservices-4'):
         a['cat'] = 'messaging'
     elif a['section'] in DATA_SECTIONS or a['id'] == 'db-replication-sharding':
         a['cat'] = 'data'
