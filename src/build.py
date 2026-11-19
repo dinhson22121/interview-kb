@@ -41,6 +41,16 @@ def slug(s):
 articles = []
 
 
+def make_excerpt(body):
+    txt = re.sub(r'```.*?```', ' ', body, flags=re.S)
+    txt = '\n'.join(l for l in txt.split('\n')
+                    if not l.lstrip().startswith('|') and not l.startswith('###'))
+    txt = re.sub(r'(?m)^\s*(?:[-*]|\d+\.)\s+(?:\[ \]\s*)?', '', txt)
+    txt = re.sub(r'\]\([^)]*\)', ']', txt)
+    txt = re.sub(r'[*_`#>\[\]|\\]', '', txt)
+    return re.sub(r'\s+', ' ', txt).strip()[:220]
+
+
 def add(a):
     a['body'] = a['body'].strip('\n')
     txt = re.sub(r'```.*?```', ' ', a['body'], flags=re.S)
@@ -139,14 +149,23 @@ if iv:
 # ---------- extra.md ----------
 import glob
 raw = '\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob('extra*.md')))
+overrides = []
 for chunk in raw.split('@@@ ')[1:]:
     head, body = chunk.split('\n', 1)
     parts = [x.strip() for x in head.split('|')]
     aid, title, cat, tags, kind = parts[:5]
     section = parts[5] if len(parts) > 5 else ''
+    if kind == 'override':  # bilingual rewrite of an existing article: replace title + body
+        overrides.append((aid, title, body.strip('\n')))
+        continue
     base = ['huong-dan'] if cat == 'guide' else (['cong-ty'] if cat == 'company' else [])
     add(dict(id=aid, title=title, cat=cat, section=section, kind=kind,
              tags=base + tags.split(','), body=body))
+
+by = {a['id']: a for a in articles}
+for aid, title, body in overrides:
+    assert aid in by, 'override for unknown id ' + aid
+    by[aid].update(title=title, body=body, excerpt=make_excerpt(body), bilingual=True)
 
 coding_tip = next((t for h, t in part_tip.items() if h.startswith('Technical: coding')), '')
 for a in articles:
