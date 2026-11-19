@@ -112,20 +112,30 @@
 @@@ day-4 | Day 4: Database, JPA & SQL | plan | lo-trinh | guide | Day 4
 **Mục tiêu:** Index, locking, isolation, N+1, PostgreSQL internals, SQL.
 
-### Lý thuyết (21 câu)
+### Lý thuyết (27 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [How would you add vector search with PostgreSQL?](#pgvector)
+- [ ] [What is the N+1 problem and how do you fix it?](#jpa-16)
+- [ ] [Lazy vs eager loading? What is LazyInitializationException?](#jpa-17)
+- [ ] [Explain entity states and the first- and second-level cache.](#jpa-18)
+- [ ] [How do you handle large batch inserts or updates with JPA?](#jpa-19)
 - [ ] [How do indexes work, and when does an index not get used?](#database-11)
 - [ ] [What is a covering index? Clustered vs non-clustered?](#database-12)
 - [ ] [A query is slow in production. What do you do?](#database-13)
 - [ ] [Optimistic vs pessimistic locking?](#database-14)
 - [ ] [What is ACID? When would you choose NoSQL?](#database-15)
-- [ ] [What is the N+1 problem and how do you fix it?](#jpa-16)
-- [ ] [Lazy vs eager loading? What is LazyInitializationException?](#jpa-17)
-- [ ] [Explain entity states and the first- and second-level cache.](#jpa-18)
-- [ ] [How do you handle large batch inserts or updates with JPA?](#jpa-19)
+- [ ] [Find the second highest salary.](#sql-7)
+- [ ] [Find the top 3 salaries in each department.](#sql-8)
+- [ ] [Find duplicate emails, and customers who have never placed an order.](#sql-9)
+- [ ] [WHERE vs HAVING? INNER vs LEFT JOIN? UNION vs UNION ALL?](#sql-10)
+- [ ] [Các loại JOIN trong SQL khác nhau thế nào?](#sql-joins)
+- [ ] [Chuẩn hóa dữ liệu (1NF, 2NF, 3NF) là gì? Khi nào nên phi chuẩn hóa?](#sql-normalization)
+- [ ] [Window function là gì? Cho ví dụ ROW_NUMBER, RANK, LAG, tổng lũy kế.](#sql-window)
+- [ ] [Có những loại NoSQL nào? Khi nào chọn SQL, khi nào chọn NoSQL?](#nosql-types)
+- [ ] [Thiết kế dữ liệu trong MongoDB thế nào: embed hay reference?](#nosql-mongodb)
+- [ ] [Cassandra hoạt động thế nào? Thiết kế bảng ra sao?](#nosql-cassandra)
 - [ ] [How does PostgreSQL guarantee atomicity and durability after a crash?](#pg-acid-wal)
 - [ ] [What is MVCC, and why does PostgreSQL need VACUUM?](#pg-mvcc)
 - [ ] [Read committed vs repeatable read vs serializable in PostgreSQL?](#pg-isolation)
@@ -133,10 +143,6 @@
 - [ ] [When and how do you partition a large table?](#pg-partitioning)
 - [ ] [Why use PgBouncer if the app already has a connection pool?](#pg-pooling)
 - [ ] [Tricky SQL questions: EXISTS vs IN, NULL, deleting 10 million rows.](#sql-tricky)
-- [ ] [Find the second highest salary.](#sql-7)
-- [ ] [Find the top 3 salaries in each department.](#sql-8)
-- [ ] [Find duplicate emails, and customers who have never placed an order.](#sql-9)
-- [ ] [WHERE vs HAVING? INNER vs LEFT JOIN? UNION vs UNION ALL?](#sql-10)
 
 ### Coding: Sliding window
 
@@ -159,27 +165,34 @@
 @@@ day-5 | Day 5: Microservices & Kafka | plan | lo-trinh | guide | Day 5
 **Mục tiêu:** Saga, outbox, idempotency, resilience, REST, Kafka.
 
-### Lý thuyết (18 câu)
+### Lý thuyết (25 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [Monolith vs microservices: when would you choose each?](#microservices-1)
 - [ ] [How do services communicate, and how do you choose sync vs async?](#microservices-2)
-- [ ] [How do you keep data consistent across services?](#microservices-3)
 - [ ] [What is the outbox pattern?](#microservices-4)
 - [ ] [How do you make an operation idempotent?](#microservices-5)
 - [ ] [How do you make calls between services resilient?](#microservices-6)
 - [ ] [What does an API gateway do? How is authentication handled across services?](#microservices-7)
 - [ ] [How do you observe and debug a distributed system?](#microservices-8)
 - [ ] [Explain the CAP theorem in practical terms.](#microservices-9)
+- [ ] [What are REST principles? Is REST always stateless?](#arch-rest)
+- [ ] [What happens if a circuit breaker stays open too long?](#arch-cb-open)
+- [ ] [Làm sao giữ dữ liệu nhất quán giữa các service? Saga pattern là gì?](#microservices-3)
 - [ ] [Explain topics, partitions, offsets and consumer groups.](#kafka-10)
 - [ ] [What is a message key and why use it?](#kafka-11)
 - [ ] [What delivery guarantees does Kafka offer?](#kafka-12)
 - [ ] [What is a dead letter queue? What happens after a message lands there?](#kafka-13)
 - [ ] [What is a rebalance, and what is consumer lag?](#kafka-14)
-- [ ] [Kafka vs RabbitMQ?](#kafka-15)
-- [ ] [What are REST principles? Is REST always stateless?](#arch-rest)
-- [ ] [What happens if a circuit breaker stays open too long?](#arch-cb-open)
+- [ ] [Kafka và RabbitMQ khác nhau thế nào? Khi nào chọn cái nào?](#kafka-15)
+- [ ] [RabbitMQ hoạt động thế nào? Exchange có những loại nào?](#rabbitmq-basics)
+- [ ] [Làm sao để RabbitMQ không mất message? Retry và dead letter làm thế nào?](#rabbitmq-reliability)
+- [ ] [Kafka đảm bảo thứ tự thế nào? Retry khi xử lý lỗi mà không làm hỏng thứ tự?](#kafka-ordering-retry)
+- [ ] [Kafka giữ dữ liệu bao lâu? Log compaction là gì?](#kafka-retention)
+- [ ] [Two-phase commit (2PC) là gì? Vì sao microservices ít dùng?](#dt-2pc)
+- [ ] [TCC (Try-Confirm-Cancel) là gì? Khác Saga thế nào?](#dt-tcc)
+- [ ] [So sánh các cách xử lý giao dịch phân tán: 2PC, Saga, TCC, Outbox.](#dt-compare)
 - [ ] [Why is Kafka fast, and what are ISR and exactly-once?](#kafka-internals)
 
 ### Coding: Stack
@@ -266,7 +279,7 @@
 @@@ day-8 | Day 8: System design 1 | plan | lo-trinh | guide | Day 8
 **Mục tiêu:** Khung trả lời 45 phút, caching, CDN, scale database, consistent hashing.
 
-### Lý thuyết (8 câu)
+### Lý thuyết (14 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -278,6 +291,12 @@
 - [ ] [How does a CDN work, and what can it do for an API?](#sd-cdn)
 - [ ] [What is consistent hashing and why use it?](#sd-consistent-hashing)
 - [ ] [Replication and sharding: how do you choose a shard key?](#db-replication-sharding)
+- [ ] [Có những chiến lược cache nào? Cache-aside, read-through, write-through, write-behind khác nhau ra sao?](#cache-patterns)
+- [ ] [Cache penetration, cache breakdown (stampede) và cache avalanche là gì? Xử lý thế nào?](#cache-problems)
+- [ ] [Làm sao giữ cache và database nhất quán?](#cache-consistency)
+- [ ] [Redis có những kiểu dữ liệu nào? Dùng cho bài toán gì? Vì sao Redis nhanh?](#redis-structures)
+- [ ] [Redis lưu dữ liệu xuống đĩa và chạy HA thế nào? Khi bộ nhớ đầy thì sao?](#redis-ha)
+- [ ] [Cache cục bộ (Caffeine) và cache phân tán (Redis) khác nhau thế nào? Khi nào dùng cả hai?](#cache-local-vs-distributed)
 
 ### Việc cần làm
 

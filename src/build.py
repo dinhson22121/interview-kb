@@ -6,9 +6,10 @@ import json, re, unicodedata, collections
 
 CATS = [
     ('guide', 'Hướng dẫn'), ('plan', 'Lộ trình 14 ngày'), ('company', 'Công ty'), ('hr', 'HR & giới thiệu'),
-    ('java', 'Java & JVM'), ('go', 'Go'), ('spring', 'Spring & Database'),
-    ('arch', 'Microservices & System Design'), ('devops', 'CI/CD, Cloud & AWS'),
-    ('security', 'Security'), ('coding', 'Coding, DSA & SQL'), ('behavioral', 'Behavioral & AI'),
+    ('java', 'Java & JVM'), ('go', 'Go'), ('spring', 'Spring & JPA'),
+    ('data', 'SQL, NoSQL & Cache'), ('arch', 'Microservices & System Design'),
+    ('messaging', 'Kafka, RabbitMQ & Distributed TX'), ('devops', 'CI/CD, Cloud & AWS'),
+    ('security', 'Security'), ('coding', 'Coding & DSA'), ('behavioral', 'Behavioral & AI'),
 ]
 CAT_LABEL = dict(CATS)
 H2_CAT = [  # prefix of the ## heading -> category
@@ -166,6 +167,16 @@ by = {a['id']: a for a in articles}
 for aid, title, body in overrides:
     assert aid in by, 'override for unknown id ' + aid
     by[aid].update(title=title, body=body, excerpt=make_excerpt(body), bilingual=True)
+
+# move topics into the dedicated messaging / data categories
+DATA_SECTIONS = {'Database', 'PostgreSQL internals', 'SQL nâng cao', 'SQL'}
+for a in articles:
+    if a['kind'] != 'qa':
+        continue
+    if a['section'] == 'Kafka và messaging' or a['id'] == 'microservices-3':
+        a['cat'] = 'messaging'
+    elif a['section'] in DATA_SECTIONS or a['id'] == 'db-replication-sharding':
+        a['cat'] = 'data'
 
 coding_tip = next((t for h, t in part_tip.items() if h.startswith('Technical: coding')), '')
 for a in articles:
