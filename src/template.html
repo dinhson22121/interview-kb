@@ -80,7 +80,10 @@ body.practice .ex{display:none}
 .body blockquote{margin:0 0 12px;padding-left:12px;border-left:3px solid var(--line);color:var(--muted)}
 .body em{color:var(--muted)}
 mark.fill{background:var(--hl);color:var(--hlfg);padding:0 2px}
-.body input[type=checkbox]{margin-right:6px}
+.body input[type=checkbox]{margin-right:6px;cursor:pointer}
+.body li.checked{color:var(--muted)}
+.body li.checked a{text-decoration:line-through}
+.body li:has(> input[type=checkbox]){list-style:none;margin-left:-18px}
 .foot-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:26px;padding-top:12px;border-top:1px solid var(--line)}
 footer{display:flex;justify-content:space-between;padding:5px 12px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;flex:none}
 .kbd{color:var(--muted)}
@@ -130,6 +133,7 @@ const S = {round: store.get('round','all'), tag: store.get('tag',null), q:'', to
            practice: store.get('practice',false), dark: store.get('dark', matchMedia('(prefers-color-scheme: dark)').matches)};
 let done = new Set(store.get('done',[]));
 let revealed = new Set();
+function chkState(id){ return store.get('chk.'+id, {}); }
 
 const $ = s => document.querySelector(s);
 const esc = s => s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -163,6 +167,11 @@ function renderSide(){
   h += ROUNDS.map(([k,l])=>`<div class="row ${S.round===k?'on':''}" data-round="${k}"><span>${l}</span><span class="n">${rc(k)}</span></div>`).join('');
   h += `<h4>-- TIẾN ĐỘ --</h4><div class="row ${S.todo?'on':''}" data-todo="1"><span>chưa thuộc</span><span class="n">${QA.length-nd}</span></div>`;
   h += `<div class="row" style="cursor:default"><span>đã thuộc</span><span class="n">${nd}/${QA.length}</span></div><div class="prog"><div style="width:${(nd/QA.length*100).toFixed(1)}%"></div></div>`;
+  const days = A.filter(a=>a.cat==='plan');
+  h += '<h4>-- LỘ TRÌNH --</h4>' + days.map(a=>{
+    const ck = chkState(a.id), total = (a.body.match(/^- \[ \]/gm)||[]).length, n = Object.values(ck).filter(Boolean).length;
+    return `<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${esc(a.title)}</span><span class="n">${n}/${total}</span></div>`;
+  }).join('');
   const cos = A.filter(a=>a.cat==='company');
   h += '<h4>-- CÔNG TY --</h4>' + cos.map(a=>`<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${esc(a.title)}</span><span class="n">→</span></div>`).join('');
   h += '<h4>-- TAGS --</h4>';
@@ -214,6 +223,18 @@ function decorate(root){
     p.appendChild(b);
   });
   root.querySelectorAll('a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener';});
+  const id = location.hash.slice(1);
+  if (id) {
+    const st = chkState(id);
+    root.querySelectorAll('input[type=checkbox]').forEach((cb,i)=>{
+      cb.disabled = false; cb.checked = !!st[i];
+      cb.closest('li')?.classList.toggle('checked', cb.checked);
+      cb.addEventListener('change', ()=>{
+        const s2 = chkState(id); s2[i] = cb.checked; store.set('chk.'+id, s2);
+        cb.closest('li')?.classList.toggle('checked', cb.checked); renderSide();
+      });
+    });
+  }
 }
 
 function renderDetail(id){

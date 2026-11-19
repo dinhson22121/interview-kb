@@ -5,7 +5,7 @@ Run inside src/:  python3 build.py && python3 bundle.py
 import json, re, unicodedata, collections
 
 CATS = [
-    ('guide', 'Hướng dẫn'), ('company', 'Công ty'), ('hr', 'HR & giới thiệu'),
+    ('guide', 'Hướng dẫn'), ('plan', 'Lộ trình 14 ngày'), ('company', 'Công ty'), ('hr', 'HR & giới thiệu'),
     ('java', 'Java & JVM'), ('go', 'Go'), ('spring', 'Spring & Database'),
     ('arch', 'Microservices & System Design'), ('devops', 'CI/CD, Cloud & AWS'),
     ('security', 'Security'), ('coding', 'Coding, DSA & SQL'), ('behavioral', 'Behavioral & AI'),

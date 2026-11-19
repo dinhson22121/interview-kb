@@ -9,6 +9,7 @@ Tính năng: lọc theo chủ đề và tag, tìm kiếm (phím `/`), chế đ�
 - `index.html` — trang đã build; GitHub Pages phục vụ trực tiếp file này
 - `src/src.md` — câu hỏi và câu trả lời chính
 - `src/extra*.md` — bài bổ sung: kế hoạch, công ty, DSA, system design (`extra.md`), Go, Security, AWS, PostgreSQL (`extra_go.md`, `extra_sec.md`, `extra_cloud.md`, `extra_db.md`, `extra_sd.md`). Mỗi bài bắt đầu bằng `@@@ id | tiêu đề | chủ đề | tags | guide/qa | section`
+- `src/gen_days.py` — sinh lộ trình 14 ngày (`extra_days.md`) với checklist lý thuyết và bài LeetCode theo ngày
 - `src/build.py` — tách Markdown thành bài, gắn tag, kiểm tra link nội bộ, xuất `data.json`
 - `src/template.html` — giao diện
 - `src/bundle.py` — nhúng dữ liệu và thư viện `marked` vào `index.html`
@@ -20,7 +21,7 @@ Thêm một khối `@@@` vào một file `src/extra*.md` (chủ đề `company` 
 ```bash
 cd src
 npm i marked@12.0.2      # lần đầu
-python3 build.py && python3 bundle.py
+python3 build.py && python3 gen_days.py && python3 build.py && python3 bundle.py
 git add -A && git commit -m "update content"
 git push origin main main:gh-pages   # GitHub Pages phục vụ nhánh gh-pages
 ```
