@@ -140,6 +140,14 @@ const S = {round: store.get('round','all'), tag: store.get('tag',null), q:'', to
 let done = new Set(store.get('done',[]));
 let revealed = new Set();
 function chkState(id){ return store.get('chk.'+id, {}); }
+function isoToday(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+function addDays(iso,n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); }
+function fmtDate(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
+function dayNum(start){ if(!start) return 0; return Math.round((new Date(isoToday()+'T00:00:00')-new Date(start+'T00:00:00'))/864e5)+1; }
+function resetProgress(){
+  Object.keys(localStorage).filter(k=>k.startsWith('kb.chk.')).forEach(k=>localStorage.removeItem(k));
+  done = new Set(); store.set('done', []); store.set('start', isoToday());
+}
 
 const $ = s => document.querySelector(s);
 const esc = s => s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -173,10 +181,15 @@ function renderSide(){
   h += ROUNDS.map(([k,l])=>`<div class="row ${S.round===k?'on':''}" data-round="${k}"><span>${l}</span><span class="n">${rc(k)}</span></div>`).join('');
   h += `<h4>-- TIẾN ĐỘ --</h4><div class="row ${S.todo?'on':''}" data-todo="1"><span>chưa thuộc</span><span class="n">${QA.length-nd}</span></div>`;
   h += `<div class="row" style="cursor:default"><span>đã thuộc</span><span class="n">${nd}/${QA.length}</span></div><div class="prog"><div style="width:${(nd/QA.length*100).toFixed(1)}%"></div></div>`;
+  h += `<div class="row" data-act="reset" title="Xóa toàn bộ tiến độ và bắt đầu lại từ Day 1 hôm nay"><span>↺ reset, bắt đầu lại Day 1</span><span class="n"></span></div>`;
   const days = A.filter(a=>a.cat==='plan');
-  h += '<h4>-- LỘ TRÌNH --</h4>' + days.map(a=>{
+  const start = store.get('start', null), today = dayNum(start);
+  h += '<h4>-- LỘ TRÌNH --</h4>';
+  if (start) h += `<div class="row" style="cursor:default"><span>bắt đầu ${fmtDate(start)}</span><span class="n">${today>=1&&today<=14?'hôm nay: Day '+today:''}</span></div>`;
+  h += days.map((a,i)=>{
     const ck = chkState(a.id), total = (a.body.match(/^- \[ \]/gm)||[]).length, n = Object.values(ck).filter(Boolean).length;
-    return `<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${esc(a.title)}</span><span class="n">${n}/${total}</span></div>`;
+    const isToday = start && today===i+1;
+    return `<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${isToday?'▶ ':''}${esc(a.title)}${start?' · '+fmtDate(addDays(start,i)):''}</span><span class="n">${n}/${total}</span></div>`;
   }).join('');
   const cos = A.filter(a=>a.cat==='company');
   h += '<h4>-- CÔNG TY --</h4>' + cos.map(a=>`<div class="row ${location.hash.slice(1)===a.id?'on':''}" data-id="${a.id}"><span>${esc(a.title)}</span><span class="n">→</span></div>`).join('');
@@ -289,6 +302,7 @@ document.addEventListener('click', e=>{
   else if (d.id || d.go){ closeSide(); location.hash = d.id || d.go; }
   else if (d.act==='back'){ toList(); }
   else if (d.act==='reveal'){ const id=location.hash.slice(1); revealed.add(id); renderDetail(id); }
+  else if (d.act==='reset'){ if (confirm('Xóa toàn bộ checklist và mục "đã thuộc", bắt đầu lại Day 1 từ hôm nay?')){ resetProgress(); closeSide(); location.hash='day-1'; renderSide(); route(); } }
   else if (d.act==='done'){ const id=location.hash.slice(1); done.has(id)?done.delete(id):done.add(id); store.set('done',[...done]); renderSide(); renderDetail(id); }
 });
 window.addEventListener('hashchange', route);
