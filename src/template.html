@@ -97,6 +97,13 @@ footer{display:flex;justify-content:space-between;padding:5px 12px;border-top:1p
   .logo .full{display:none}
   footer span:last-child{display:none}
 }
+
+.tts{display:inline-flex;gap:6px;align-items:center;margin-left:10px;vertical-align:middle;font-size:12px}
+.tts button{font:inherit;font-size:12px;padding:1px 8px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);cursor:pointer;border-radius:3px}
+.tts button.on{background:var(--fg);color:var(--bg)}
+.tts select{font:inherit;font-size:12px;background:var(--bg2);color:var(--fg);border:1px solid var(--line)}
+.tts .warn{color:var(--muted)}
+.speaking{outline:2px solid var(--tipline);outline-offset:4px}
 </style>
 </head>
 <body>
@@ -218,6 +225,87 @@ function md(src){
   if (window.marked) return marked.parse(src, {gfm:true, breaks:false});
   return '<pre>'+esc(src)+'</pre>';
 }
+
+// ---------- audio (Web Speech API) ----------
+const TTS = { rate: store.get('ttsRate', 1), playing: null, queue: [] };
+const hasTTS = 'speechSynthesis' in window;
+function voiceFor(lang){
+  const vs = speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().replace('_','-').startsWith(lang));
+  const pref = ['natural','online','google','premium','enhanced','neural'];
+  vs.sort((a,b)=>pref.findIndex(p=>b.name.toLowerCase().includes(p))-pref.findIndex(p=>a.name.toLowerCase().includes(p)) || (b.localService?0:1)-(a.localService?0:1));
+  return vs[0] || null;
+}
+function nodeText(nodes){
+  const box = document.createElement('div');
+  nodes.forEach(n=>box.appendChild(n.cloneNode(true)));
+  box.querySelectorAll('pre,button,.tts').forEach(x=>x.remove());
+  box.querySelectorAll('table').forEach(t=>{
+    const rows=[...t.rows].map(r=>[...r.cells].map(c=>c.innerText.trim()).filter(Boolean).join(', '));
+    const p=document.createElement('p'); p.textContent=rows.join('. ')+'.'; t.replaceWith(p);
+  });
+  box.querySelectorAll('li,p,h1,h2,h3,h4').forEach(e=>e.append('. '));
+  return box.textContent.replace(/[→←]/g,', ').replace(/[*#|`>_]+/g,' ').replace(/\s*\.\s*\.+/g,'.').replace(/\s+/g,' ').trim();
+}
+function chunks(text){
+  const parts = text.match(/[^.!?;:]+[.!?;:]*\s*/g) || [text], out=[]; let cur='';
+  parts.forEach(p=>{ if ((cur+p).length>220 && cur){ out.push(cur); cur=''; } cur+=p; });
+  if (cur.trim()) out.push(cur); return out;
+}
+function ttsStop(){ if(!hasTTS) return; TTS.queue=[]; speechSynthesis.cancel(); document.querySelectorAll('.speaking').forEach(e=>e.classList.remove('speaking'));
+  document.querySelectorAll('.tts .play.on').forEach(b=>{b.classList.remove('on'); b.textContent=b.dataset.label;}); TTS.playing=null; }
+function ttsPlay(btn, lang, nodes){
+  if (TTS.playing===btn){ ttsStop(); return; }
+  ttsStop();
+  const v = voiceFor(lang);
+  const parts = chunks(nodeText(nodes));
+  TTS.playing = btn; btn.classList.add('on'); btn.textContent='■ dừng';
+  nodes.forEach(n=>n.nodeType===1 && n.classList.add('speaking'));
+  TTS.queue = parts.slice();
+  const next = ()=>{
+    if (TTS.playing!==btn) return;
+    const t = TTS.queue.shift();
+    if (!t){ ttsStop(); return; }
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = lang==='vi' ? 'vi-VN' : 'en-US'; if (v) u.voice = v; u.rate = TTS.rate;
+    u.onend = next; u.onerror = e=>{ if(e.error!=='interrupted' && e.error!=='canceled') next(); };
+    speechSynthesis.speak(u);
+  };
+  next();
+}
+function ttsBar(lang, nodes){
+  const bar=document.createElement('span'); bar.className='tts';
+  const b=document.createElement('button'); b.className='play'; b.dataset.label='▶ nghe'; b.textContent='▶ nghe';
+  b.onclick=e=>{e.stopPropagation(); ttsPlay(b, lang, nodes);};
+  const sel=document.createElement('select'); sel.title='Tốc độ đọc';
+  [0.8,0.9,1,1.1,1.25,1.5].forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r+'x';if(r==TTS.rate)o.selected=true;sel.appendChild(o);});
+  sel.onclick=e=>e.stopPropagation();
+  sel.onchange=()=>{TTS.rate=+sel.value; store.set('ttsRate',TTS.rate); document.querySelectorAll('.tts select').forEach(x=>x.value=sel.value);};
+  bar.append(b, sel);
+  if (speechSynthesis.getVoices().length && !voiceFor(lang)){
+    const w=document.createElement('span'); w.className='warn';
+    w.textContent = lang==='vi' ? '(máy chưa có giọng tiếng Việt)' : '(no English voice)'; bar.append(w);
+  }
+  return bar;
+}
+function addAudio(root){
+  if (!hasTTS || root.id!=='ans') return;
+  const hs=[...root.querySelectorAll(':scope > h3')].filter(h=>/^(Tiếng Việt|English)$/.test(h.textContent.trim()));
+  if (hs.length){
+    hs.filter(h=>h.textContent.trim()==='English').forEach(h=>{
+      const nodes=[]; let n=h.nextElementSibling;
+      while(n && n.tagName!=='H3'){ nodes.push(n); n=n.nextElementSibling; }
+      h.appendChild(ttsBar('en', nodes));
+    });
+  } else {
+    const a = BY[location.hash.slice(1)]; if (!a || a.kind!=='qa') return;
+    const nodes=[...root.children];
+    if (/[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i.test(root.textContent)) return; // English only
+    const lang = 'en';
+    const p=document.createElement('div'); p.style.margin='0 0 10px'; p.appendChild(ttsBar(lang, nodes)); root.prepend(p);
+  }
+}
+if (hasTTS){ speechSynthesis.onvoiceschanged = ()=>{}; speechSynthesis.getVoices(); }
+
 function decorate(root){
   // highlight [placeholders] outside code/links
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode(n){
@@ -273,10 +361,12 @@ function renderDetail(id){
   h += '</div>';
   $('#content').innerHTML = h;
   $('#content').querySelectorAll('.body').forEach(decorate);
+  addAudio($('#content').querySelector('#ans') || document.createElement('div'));
   $('#content').scrollTop = 0;
 }
 
 function route(){
+  ttsStop();
   const id = location.hash.slice(1);
   renderSide();
   if (id && BY[id]) renderDetail(id); else renderList();
