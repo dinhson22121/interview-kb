@@ -56,7 +56,7 @@ DAYS = [
                  lc(567, 'permutation-in-string', 'Permutation in String', 'Medium')],
          topic='Sliding window', evening='CI/CD lab bước 3: multi-stage Dockerfile, push image lên GHCR'),
     dict(n=5, title='Microservices & Kafka', goal='Saga, outbox, idempotency, resilience, REST, Kafka.',
-         theory=[ids(prefix=['microservices-', 'kafka-', 'rabbitmq-', 'dt-', 'arch-rest', 'arch-cb-open'])],
+         theory=[ids(prefix=['request-flow', 'sync-async-code', 'microservices-', 'kafka-', 'rabbitmq-', 'dt-', 'arch-rest', 'arch-cb-open'])],
          coding=[lc(20, 'valid-parentheses', 'Valid Parentheses', 'Easy'),
                  lc(155, 'min-stack', 'Min Stack', 'Medium'),
                  lc(739, 'daily-temperatures', 'Daily Temperatures', 'Medium')],

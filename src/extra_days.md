@@ -177,12 +177,12 @@
 @@@ day-5 | Day 5: Microservices & Kafka | plan | lo-trinh | guide | Day 5
 **Mục tiêu:** Saga, outbox, idempotency, resilience, REST, Kafka.
 
-### Lý thuyết (25 câu)
+### Lý thuyết (27 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [Monolith vs microservices: when would you choose each?](#microservices-1)
-- [ ] [How do services communicate, and how do you choose sync vs async?](#microservices-2)
+- [ ] [Các service giao tiếp với nhau thế nào? Khi nào dùng đồng bộ (sync), khi nào bất đồng bộ (async)?](#microservices-2)
 - [ ] [How do you make an operation idempotent?](#microservices-5)
 - [ ] [How do you make calls between services resilient?](#microservices-6)
 - [ ] [What does an API gateway do? How is authentication handled across services?](#microservices-7)
@@ -190,6 +190,8 @@
 - [ ] [Explain the CAP theorem in practical terms.](#microservices-9)
 - [ ] [What are REST principles? Is REST always stateless?](#arch-rest)
 - [ ] [What happens if a circuit breaker stays open too long?](#arch-cb-open)
+- [ ] [Trong một service, xử lý đồng bộ và bất đồng bộ khác nhau thế nào? @Async, CompletableFuture, reactive, virtual threads?](#sync-async-code)
+- [ ] [Mô tả toàn bộ hành trình của một request từ lúc client gửi đến khi nhận response.](#request-flow)
 - [ ] [Làm sao giữ dữ liệu nhất quán giữa các service? Saga pattern là gì?](#microservices-3)
 - [ ] [Outbox pattern là gì? Hoạt động cụ thể thế nào?](#microservices-4)
 - [ ] [Explain topics, partitions, offsets and consumer groups.](#kafka-10)
