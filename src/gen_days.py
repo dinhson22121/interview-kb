@@ -76,7 +76,7 @@ DAYS = [
                  lc(141, 'linked-list-cycle', 'Linked List Cycle', 'Easy')],
          topic='Linked list'),
     dict(n=8, title='System design 1', goal='Khung trả lời 45 phút, caching, CDN, scale database, consistent hashing.',
-         theory=[ids(explicit=['sd-checklist', 'system-design-17', 'system-design-18', 'system-design-19',
+         theory=[ids(explicit=['sd-checklist', 'sd-estimation', 'sd-scale-up-out', 'sd-load-balancer', 'sd-availability', 'sd-autoscaling', 'sd-queue-backpressure', 'sd-bottleneck', 'system-design-17', 'system-design-18', 'system-design-19',
                                 'system-design-20', 'sd-cdn', 'sd-consistent-hashing', 'db-replication-sharding'],
                      prefix=['cache-', 'redis-'])],
          extra=['- [ ] Tự vẽ URL shortener và rate limiter trong 35 phút mỗi bài, nói to bằng tiếng Anh'],
