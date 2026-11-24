@@ -464,11 +464,11 @@
 @@@ day-12 | Day 12: Behavioral & AI | plan | lo-trinh | guide | Day 12
 **Mục tiêu:** 8 câu chuyện STAR bằng chuyện thật, AI tools, Agile.
 
-### Lý thuyết (25 câu)
+### Lý thuyết (32 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
-- [ ] [How do you use AI coding tools in your work?](#ai-tools-13)
+- [ ] [Bạn dùng công cụ AI coding trong công việc thế nào?](#ai-tools-13)
 - [ ] [How do you write an effective prompt for a coding task?](#ai-tools-14)
 - [ ] [What are tokens, and how do you control token usage and cost?](#ai-tools-15)
 - [ ] [LLM hoạt động thế nào? Token, context window, temperature, hallucination là gì?](#ai-llm-basics)
@@ -480,6 +480,13 @@
 - [ ] [Đưa tính năng LLM lên production cần lưu ý gì về chi phí, độ trễ, độ tin cậy và đánh giá chất lượng?](#ai-production)
 - [ ] [Rủi ro bảo mật của ứng dụng LLM là gì? Prompt injection là gì và phòng chống thế nào?](#ai-security)
 - [ ] [System design: thiết kế trợ lý AI hỏi đáp trên tài liệu nội bộ cho nhiều khách hàng (multi-tenant).](#ai-sd-assistant)
+- [ ] [Vibe coding là gì? Khác gì với AI-assisted engineering? Khi nào chấp nhận được?](#ai-dev-vibe-coding)
+- [ ] [AI coding agent (Claude Code, Cursor, Copilot agent) hoạt động thế nào? Khác autocomplete và chat ra sao?](#ai-dev-agentic-tools)
+- [ ] [Quy trình làm việc hiệu quả với AI coding agent trên một tính năng thật là gì?](#ai-dev-workflow)
+- [ ] [Context engineering cho AI coding agent là gì? (CLAUDE.md, AGENTS.md, rules, MCP)](#ai-dev-context)
+- [ ] [Làm sao review và kiểm soát chất lượng code do AI sinh ra?](#ai-dev-review)
+- [ ] [Đưa AI vào quy trình phát triển của cả nhóm (SDLC) thế nào? Đo hiệu quả ra sao?](#ai-dev-team)
+- [ ] [Subagent, chạy nhiều agent song song và agent trong CI dùng thế nào?](#ai-dev-multi-agent)
 - [ ] [Tell me about the most challenging project you've worked on.](#behavioral-1)
 - [ ] [Describe a production incident you handled.](#behavioral-2)
 - [ ] [Tell me about a disagreement with a teammate or lead.](#behavioral-3)
