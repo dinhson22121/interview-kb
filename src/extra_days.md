@@ -464,10 +464,22 @@
 @@@ day-12 | Day 12: Behavioral & AI | plan | lo-trinh | guide | Day 12
 **Mục tiêu:** 8 câu chuyện STAR bằng chuyện thật, AI tools, Agile.
 
-### Lý thuyết (16 câu)
+### Lý thuyết (25 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
+- [ ] [How do you use AI coding tools in your work?](#ai-tools-13)
+- [ ] [How do you write an effective prompt for a coding task?](#ai-tools-14)
+- [ ] [What are tokens, and how do you control token usage and cost?](#ai-tools-15)
+- [ ] [LLM hoạt động thế nào? Token, context window, temperature, hallucination là gì?](#ai-llm-basics)
+- [ ] [RAG (Retrieval-Augmented Generation) là gì? Mô tả một pipeline RAG hoàn chỉnh.](#ai-rag)
+- [ ] [Embedding và vector database hoạt động thế nào? Chọn pgvector hay vector DB chuyên dụng?](#ai-embeddings)
+- [ ] [Tool calling (function calling) và AI agent hoạt động thế nào? Khi nào nên và không nên dùng agent?](#ai-tool-calling)
+- [ ] [MCP (Model Context Protocol) là gì? Vì sao cần?](#ai-mcp)
+- [ ] [Tích hợp LLM vào ứng dụng Spring Boot thế nào? Spring AI hay LangChain4j?](#ai-spring-ai)
+- [ ] [Đưa tính năng LLM lên production cần lưu ý gì về chi phí, độ trễ, độ tin cậy và đánh giá chất lượng?](#ai-production)
+- [ ] [Rủi ro bảo mật của ứng dụng LLM là gì? Prompt injection là gì và phòng chống thế nào?](#ai-security)
+- [ ] [System design: thiết kế trợ lý AI hỏi đáp trên tài liệu nội bộ cho nhiều khách hàng (multi-tenant).](#ai-sd-assistant)
 - [ ] [Tell me about the most challenging project you've worked on.](#behavioral-1)
 - [ ] [Describe a production incident you handled.](#behavioral-2)
 - [ ] [Tell me about a disagreement with a teammate or lead.](#behavioral-3)
@@ -480,9 +492,6 @@
 - [ ] [How do you estimate work and work in Scrum?](#behavioral-10)
 - [ ] [How do you learn a new domain or technology quickly?](#behavioral-11)
 - [ ] [Where do you see yourself in three years?](#behavioral-12)
-- [ ] [How do you use AI coding tools in your work?](#ai-tools-13)
-- [ ] [How do you write an effective prompt for a coding task?](#ai-tools-14)
-- [ ] [What are tokens, and how do you control token usage and cost?](#ai-tools-15)
 - [ ] [What is the SDLC, and why is Agile usually preferred over Waterfall?](#eng-sdlc-agile)
 
 ### Việc cần làm

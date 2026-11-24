@@ -105,7 +105,7 @@ DAYS = [
                  lc(215, 'kth-largest-element-in-an-array', 'Kth Largest Element in an Array', 'Medium')],
          topic='Intervals & heap'),
     dict(n=12, title='Behavioral & AI', goal='8 câu chuyện STAR bằng chuyện thật, AI tools, Agile.',
-         theory=[ids(prefix=['behavioral-', 'ai-tools-', 'eng-sdlc-agile'])],
+         theory=[ids(prefix=['behavioral-', 'ai-', 'eng-sdlc-agile'])],
          extra=['- [ ] Điền hết các chỗ [...] bằng chuyện thật, mỗi câu chuyện nói trong 2 phút'],
          coding=[lc(200, 'number-of-islands', 'Number of Islands', 'Medium'),
                  lc(133, 'clone-graph', 'Clone Graph', 'Medium'),

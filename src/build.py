@@ -10,7 +10,7 @@ CATS = [
     ('spring-new', 'Spring: tính năng mới'), ('go', 'Go'),
     ('data', 'SQL, NoSQL & Cache'), ('arch', 'Microservices & System Design'),
     ('messaging', 'Kafka, RabbitMQ & Distributed TX'), ('devops', 'CI/CD, Cloud & AWS'),
-    ('security', 'Security'), ('coding', 'Coding & DSA'), ('behavioral', 'Behavioral & AI'),
+    ('security', 'Security'), ('coding', 'Coding & DSA'), ('ai', 'AI & LLM cho Backend'), ('behavioral', 'Behavioral'),
 ]
 CAT_LABEL = dict(CATS)
 H2_CAT = [  # prefix of the ## heading -> category
@@ -176,6 +176,8 @@ for a in articles:
         continue
     if a['section'] == 'Kafka và messaging' or a['id'] in ('microservices-3', 'microservices-4'):
         a['cat'] = 'messaging'
+    elif a['id'].startswith('ai-tools-'):
+        a['cat'] = 'ai'
     elif a['id'] == 'java-modern-8':
         a['cat'] = 'java-new'
     elif a['section'] in DATA_SECTIONS or a['id'] == 'db-replication-sharding':
