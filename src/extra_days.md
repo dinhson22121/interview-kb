@@ -378,7 +378,7 @@
 @@@ day-10 | Day 10: CI/CD, Docker, K8s & AWS | plan | lo-trinh | guide | Day 10
 **Mục tiêu:** Pipeline, deploy strategies, probes, AWS cơ bản, xử lý sự cố.
 
-### Lý thuyết (31 câu)
+### Lý thuyết (35 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -413,6 +413,10 @@
 - [ ] [How do you build a small, secure Docker image for a Go service?](#docker-go)
 - [ ] [A pod is in CrashLoopBackOff. How do you debug it?](#k8s-debug)
 - [ ] [Production is slow and alerts are firing. Walk me through the first 10 minutes.](#troubleshoot-10min)
+- [ ] [Mô hình OSI có mấy tầng? Mỗi tầng làm gì? Backend engineer cần quan tâm tầng nào?](#net-osi)
+- [ ] [TCP và UDP khác nhau thế nào? Bắt tay 3 bước, đóng kết nối, TIME_WAIT là gì?](#net-tcp-udp)
+- [ ] [HTTP/1.1, HTTP/2 và HTTP/3 khác nhau thế nào? HTTPS và TLS handshake hoạt động ra sao?](#net-http-versions)
+- [ ] [DNS hoạt động thế nào? Các loại bản ghi, TTL và những lỗi hay gặp?](#net-dns)
 
 ### Coding: Trees
 

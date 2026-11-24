@@ -93,7 +93,7 @@ DAYS = [
                  lc(102, 'binary-tree-level-order-traversal', 'Binary Tree Level Order Traversal', 'Medium')],
          topic='Trees'),
     dict(n=10, title='CI/CD, Docker, K8s & AWS', goal='Pipeline, deploy strategies, probes, AWS cơ bản, xử lý sự cố.',
-         theory=[ids(prefix=['cicd-', 'docker-', 'k8s-', 'cloud-', 'aws-', 'troubleshoot-'])],
+         theory=[ids(prefix=['net-', 'cicd-', 'docker-', 'k8s-', 'cloud-', 'aws-', 'troubleshoot-'])],
          coding=[lc(98, 'validate-binary-search-tree', 'Validate Binary Search Tree', 'Medium'),
                  lc(235, 'lowest-common-ancestor-of-a-binary-search-tree', 'Lowest Common Ancestor of a BST', 'Medium'),
                  lc(230, 'kth-smallest-element-in-a-bst', 'Kth Smallest Element in a BST', 'Medium')],

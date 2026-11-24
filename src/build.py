@@ -10,7 +10,7 @@ CATS = [
     ('spring-new', 'Spring: tính năng mới'), ('go', 'Go'),
     ('data', 'SQL, NoSQL & Cache'), ('arch', 'Microservices & System Design'),
     ('messaging', 'Kafka, RabbitMQ & Distributed TX'), ('devops', 'CI/CD, Cloud & AWS'),
-    ('security', 'Security'), ('coding', 'Coding & DSA'), ('ai', 'AI & LLM cho Backend'), ('behavioral', 'Behavioral'),
+    ('network', 'Networking (OSI, TCP, HTTP, DNS)'), ('security', 'Security'), ('coding', 'Coding & DSA'), ('ai', 'AI & LLM cho Backend'), ('behavioral', 'Behavioral'),
 ]
 CAT_LABEL = dict(CATS)
 H2_CAT = [  # prefix of the ## heading -> category
