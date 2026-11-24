@@ -293,13 +293,15 @@
 @@@ day-8 | Day 8: System design 1 | plan | lo-trinh | guide | Day 8
 **Mục tiêu:** Khung trả lời 45 phút, caching, CDN, scale database, consistent hashing.
 
-### Lý thuyết (21 câu)
+### Lý thuyết (23 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [What is your framework for a 45-minute system design interview?](#sd-checklist)
 - [ ] [Ước lượng dung lượng (back-of-the-envelope) làm thế nào? Những con số nào cần nhớ?](#sd-estimation)
 - [ ] [Scale dọc (vertical) và scale ngang (horizontal) khác nhau thế nào? Khi nào chọn cái nào?](#sd-scale-up-out)
+- [ ] [Stateless và stateful khác nhau thế nào? Cho ví dụ ở từng tầng của hệ thống.](#sd-stateless-stateful)
+- [ ] [Làm sao scale và vận hành thành phần stateful (WebSocket, database, StatefulSet)? Chuyển một service stateful sang stateless thế nào?](#sd-stateful-scaling)
 - [ ] [Load balancer hoạt động thế nào? L4 và L7 khác gì? Có những thuật toán nào?](#sd-load-balancer)
 - [ ] [High availability là gì? 99,9% và 99,99% khác nhau bao nhiêu? Thiết kế thế nào để không có điểm hỏng duy nhất?](#sd-availability)
 - [ ] [Autoscaling hoạt động thế nào? Scale theo chỉ số gì, và có những bẫy nào?](#sd-autoscaling)
