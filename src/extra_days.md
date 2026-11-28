@@ -17,13 +17,13 @@
 - [ ] [Interface và abstract class khác nhau thế nào? Khi nào chọn cái nào?](#jc-interface-vs-abstract)
 - [ ] [Diamond problem là gì? Java tránh nó thế nào?](#jc-diamond)
 - [ ] [Overloading và overriding khác nhau thế nào? Cái nào quyết định lúc compile, cái nào lúc runtime?](#jc-overload-override)
-- [ ] [synchronized và ReentrantLock khác nhau thế nào? Khi nào thật sự cần Lock?](#jc-sync-vs-lock)
 - [ ] [Abstraction và encapsulation khác nhau thế nào? Có encapsulation mà không có abstraction được không?](#jc-abstraction-encapsulation)
 - [ ] [String constant pool là gì? String được lưu ở đâu?](#jc-string-pool)
 - [ ] [Interface có private method được không? Để làm gì?](#jc-interface-private)
 - [ ] [Có khi nào được phép vi phạm nguyên tắc Open/Closed không?](#jc-ocp-violation)
 - [ ] [Khối finally có thể làm mất exception từ try không?](#jc-finally)
 - [ ] [Vì sao Map không kế thừa Collection? HashMap và TreeMap khác nhau thế nào?](#jc-collection-map)
+- [ ] [HashMap xử lý va chạm thế nào (linked list hay cây ở Java 8+)? Vì sao load factor là 0.75?](#jc-hashmap-collision)
 - [ ] [Generics: type erasure là gì? Wildcard ? extends và ? super dùng khi nào?](#jc-generics)
 
 ### Coding: Arrays & hashing
@@ -44,10 +44,12 @@
 @@@ day-2 | Day 2: JVM & concurrency | plan | lo-trinh | guide | Day 2
 **Mục tiêu:** Bộ nhớ JVM, GC, class loader, thread pool, virtual threads, Java 8–21.
 
-### Lý thuyết (20 câu)
+### Lý thuyết (22 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
+- [ ] [Java Memory Model là gì? Visibility, reordering và happens-before?](#jc-jmm)
+- [ ] [Có những cách nào để code thread-safe? Chọn cách nào khi nào?](#jc-thread-safety)
 - [ ] [synchronized và ReentrantLock khác nhau thế nào? Khi nào thật sự cần Lock?](#jc-sync-vs-lock)
 - [ ] [Explain the Stream API. What is the difference between map and flatMap?](#java-modern-7)
 - [ ] [What is Optional for, and how is it misused?](#java-modern-9)
@@ -74,6 +76,7 @@
 *Chỉ Easy và Medium. Bấm giờ, nói to complexity, code Java không autocomplete.*
 
 - [ ] Làm lại 347 trong 10 phút (min-heap kích thước k)
+- [ ] [692. Top K Frequent Words](https://leetcode.com/problems/top-k-frequent-words/) (Medium) · lời giải: [heap ngược chiều](#dsa-top-k-words)
 - [ ] [242. Valid Anagram](https://leetcode.com/problems/valid-anagram/) (Easy)
 - [ ] [238. Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/) (Medium)
 - [ ] [128. Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/) (Medium)
@@ -88,13 +91,13 @@
 @@@ day-3 | Day 3: Spring & Spring Boot | plan | lo-trinh | guide | Day 3
 **Mục tiêu:** IoC, bean lifecycle, @Transactional, AOP, auto-configuration, Security, MVC.
 
-### Lý thuyết (21 câu)
+### Lý thuyết (22 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [IoC và dependency injection là gì? Vì sao nên dùng constructor injection thay vì field injection?](#spring-1)
 - [ ] [Describe the bean lifecycle and scopes.](#spring-2)
-- [ ] [How does @Transactional work, and when does it silently not work?](#spring-3)
+- [ ] [@Transactional hoạt động bên trong thế nào, và khi nào nó âm thầm không có tác dụng?](#spring-3)
 - [ ] [@Transactional: propagation REQUIRED (mặc định) và REQUIRES_NEW khác nhau thế nào? Isolation là gì?](#spring-4)
 - [ ] [How does Spring Boot auto-configuration work?](#spring-5)
 - [ ] [How does Spring AOP work, and what are its limits?](#spring-6)
@@ -108,6 +111,7 @@
 - [ ] [What is DispatcherServlet? Walk through the Spring MVC request flow.](#sp-dispatcher)
 - [ ] [@RequestParam vs @PathVariable: can you use both in one method?](#sp-param-path)
 - [ ] [How do you configure different databases per environment?](#sp-profiles)
+- [ ] [Spring Boot khởi động thế nào từ `SpringApplication.run()` đến khi nhận request?](#sp-boot-startup)
 - [ ] [Spring Boot 2, 3, 4 khác nhau thế nào? Nâng cấp cần chú ý gì?](#sn-versions)
 - [ ] [Spring Boot 3.x có những tính năng mới nào đáng dùng?](#sn-boot3)
 - [ ] [RestTemplate, WebClient, RestClient và HTTP interface: nên dùng cái nào?](#sn-http-clients)
@@ -135,10 +139,11 @@
 @@@ day-4 | Day 4: Database, JPA & SQL | plan | lo-trinh | guide | Day 4
 **Mục tiêu:** Index, locking, isolation, N+1, PostgreSQL internals, SQL.
 
-### Lý thuyết (27 câu)
+### Lý thuyết (28 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
+- [ ] [Tối ưu một câu SQL chậm thế nào? (index, bỏ SELECT *, EXPLAIN, slow query log, phi chuẩn hóa)](#db-query-optimization)
 - [ ] [How would you add vector search with PostgreSQL?](#pgvector)
 - [ ] [What is the N+1 problem and how do you fix it?](#jpa-16)
 - [ ] [Lazy vs eager loading? What is LazyInitializationException?](#jpa-17)
@@ -225,6 +230,7 @@
 *Chỉ Easy và Medium. Bấm giờ, nói to complexity, code Java không autocomplete.*
 
 - [ ] [20. Valid Parentheses](https://leetcode.com/problems/valid-parentheses/) (Easy)
+- [ ] [678. Valid Parenthesis String](https://leetcode.com/problems/valid-parenthesis-string/) (Medium) · lời giải: [khoảng lo/hi](#dsa-valid-paren-star)
 - [ ] [155. Min Stack](https://leetcode.com/problems/min-stack/) (Medium)
 - [ ] [739. Daily Temperatures](https://leetcode.com/problems/daily-temperatures/) (Medium)
 
@@ -292,6 +298,7 @@
 *Chỉ Easy và Medium. Bấm giờ, nói to complexity, code Java không autocomplete.*
 
 - [ ] [206. Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/) (Easy)
+- [ ] [24. Swap Nodes in Pairs](https://leetcode.com/problems/swap-nodes-in-pairs/) (Medium) · lời giải: [dummy node](#dsa-swap-pairs)
 - [ ] [21. Merge Two Sorted Lists](https://leetcode.com/problems/merge-two-sorted-lists/) (Easy)
 - [ ] [141. Linked List Cycle](https://leetcode.com/problems/linked-list-cycle/) (Easy)
 
@@ -304,11 +311,12 @@
 @@@ day-8 | Day 8: System design 1 | plan | lo-trinh | guide | Day 8
 **Mục tiêu:** Khung trả lời 45 phút, caching, CDN, scale database, consistent hashing.
 
-### Lý thuyết (23 câu)
+### Lý thuyết (24 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [What is your framework for a 45-minute system design interview?](#sd-checklist)
+- [ ] [LLD: thiết kế rate limiter cho phép tối đa 5 request mỗi user mỗi phút.](#lld-rate-limiter)
 - [ ] [Ước lượng dung lượng (back-of-the-envelope) làm thế nào? Những con số nào cần nhớ?](#sd-estimation)
 - [ ] [Scale dọc (vertical) và scale ngang (horizontal) khác nhau thế nào? Khi nào chọn cái nào?](#sd-scale-up-out)
 - [ ] [Stateless và stateful khác nhau thế nào? Cho ví dụ ở từng tầng của hệ thống.](#sd-stateless-stateful)
@@ -446,11 +454,12 @@
 @@@ day-11 | Day 11: Security & testing | plan | lo-trinh | guide | Day 11
 **Mục tiêu:** JWT, OAuth, OWASP, mã hóa, mTLS, phân quyền, test pyramid (quan trọng cho Axon).
 
-### Lý thuyết (13 câu)
+### Lý thuyết (14 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
 - [ ] [TDD vs BDD, and what is the test pyramid?](#eng-testing)
+- [ ] [OAuth và JWT khác nhau thế nào? Token hết hạn ra sao, thu hồi JWT được không, refresh token hoạt động thế nào?](#sec-token-lifecycle)
 - [ ] [How does JWT work, and how do you revoke one?](#sec-jwt)
 - [ ] [Explain OAuth 2.0 and OpenID Connect. Which flow would you use?](#sec-oauth)
 - [ ] [How should passwords be stored?](#sec-password)
@@ -540,7 +549,7 @@
 @@@ day-13 | Day 13: HR & Mock 2 | plan | lo-trinh | guide | Day 13
 **Mục tiêu:** Mock đầy đủ theo quy trình công ty sắp phỏng vấn: HR, technical, manager.
 
-### Lý thuyết (10 câu)
+### Lý thuyết (11 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -554,6 +563,7 @@
 - [ ] [Are you open to working on a project chosen after you join, or in a different time zone?](#hr-screening-8)
 - [ ] [What is your strongest technology, and your weakest?](#hr-screening-9)
 - [ ] [Khi được hỏi "Bạn có câu hỏi nào cho chúng tôi không?", nên hỏi gì?](#hr-questions-to-ask)
+- [ ] [Câu hỏi culture fit: áp lực và deadline, làm việc với team toàn cầu, định hướng phát triển.](#hr-culture-fit)
 
 ### Việc cần làm
 

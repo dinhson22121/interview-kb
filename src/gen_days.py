@@ -13,10 +13,10 @@ def q(aid):
     return f'- [ ] [{t}](#{aid})'
 
 
-def ids(prefix=None, section=None, explicit=()):
+def ids(prefix=None, section=None, explicit=(), exclude=()):
     out = list(explicit)
     for a in A.values():
-        if a['kind'] != 'qa' or a['id'] in out:
+        if a['kind'] != 'qa' or a['id'] in out or a['id'] in exclude:
             continue
         if prefix and any(a['id'].startswith(p) for p in prefix):
             out.append(a['id'])
@@ -31,14 +31,15 @@ def lc(num, slug, title, level):
 
 DAYS = [
     dict(n=1, title='Java core', goal='Collections, HashMap, String, OOP, exception, generics.',
-         theory=[ids(prefix=['java-core-', 'jc-'])],
+         theory=[ids(prefix=['java-core-', 'jc-'], exclude=['jc-sync-vs-lock', 'jc-jmm', 'jc-thread-safety'])],
          coding=[lc(1, 'two-sum', 'Two Sum', 'Easy'), lc(49, 'group-anagrams', 'Group Anagrams', 'Medium'),
                  lc(3, 'longest-substring-without-repeating-characters', 'Longest Substring Without Repeating Characters', 'Medium'),
                  lc(347, 'top-k-frequent-elements', 'Top K Frequent Elements', 'Medium')],
          topic='Arrays & hashing'),
     dict(n=2, title='JVM & concurrency', goal='Bộ nhớ JVM, GC, class loader, thread pool, virtual threads, Java 8–21.',
-         theory=[ids(prefix=['jvm-', 'concurrency-', 'java-modern-', 'jn-'], explicit=['jc-sync-vs-lock'])],
+         theory=[ids(prefix=['jvm-', 'concurrency-', 'java-modern-', 'jn-'], explicit=['jc-jmm', 'jc-thread-safety', 'jc-sync-vs-lock'])],
          coding=['- [ ] Làm lại 347 trong 10 phút (min-heap kích thước k)',
+                 lc(692, 'top-k-frequent-words', 'Top K Frequent Words', 'Medium') + ' · lời giải: [heap ngược chiều](#dsa-top-k-words)',
                  lc(242, 'valid-anagram', 'Valid Anagram', 'Easy'),
                  lc(238, 'product-of-array-except-self', 'Product of Array Except Self', 'Medium'),
                  lc(128, 'longest-consecutive-sequence', 'Longest Consecutive Sequence', 'Medium'),
@@ -51,7 +52,7 @@ DAYS = [
                  lc(15, '3sum', '3Sum', 'Medium')],
          topic='Two pointers', evening='CI/CD lab bước 1–2: CI cơ bản và quality gate ([hướng dẫn](#cicd-fix))'),
     dict(n=4, title='Database, JPA & SQL', goal='Index, locking, isolation, N+1, PostgreSQL internals, SQL.',
-         theory=[ids(prefix=['database-', 'jpa-', 'pg-', 'sql-', 'nosql-'], explicit=['pgvector'])],
+         theory=[ids(prefix=['database-', 'jpa-', 'pg-', 'sql-', 'nosql-'], explicit=['db-query-optimization', 'pgvector'])],
          coding=[lc(121, 'best-time-to-buy-and-sell-stock', 'Best Time to Buy and Sell Stock', 'Easy'),
                  lc(424, 'longest-repeating-character-replacement', 'Longest Repeating Character Replacement', 'Medium'),
                  lc(567, 'permutation-in-string', 'Permutation in String', 'Medium')],
@@ -59,6 +60,7 @@ DAYS = [
     dict(n=5, title='Microservices & Kafka', goal='Saga, outbox, idempotency, resilience, REST, Kafka.',
          theory=[ids(prefix=['request-flow', 'sync-async-code', 'microservices-', 'kafka-', 'rabbitmq-', 'dt-', 'arch-rest', 'arch-cb-open'])],
          coding=[lc(20, 'valid-parentheses', 'Valid Parentheses', 'Easy'),
+                 lc(678, 'valid-parenthesis-string', 'Valid Parenthesis String', 'Medium') + ' · lời giải: [khoảng lo/hi](#dsa-valid-paren-star)',
                  lc(155, 'min-stack', 'Min Stack', 'Medium'),
                  lc(739, 'daily-temperatures', 'Daily Temperatures', 'Medium')],
          topic='Stack', evening='CI/CD lab bước 4: deploy lên kind, manual approval'),
@@ -73,11 +75,12 @@ DAYS = [
                            '- [ ] Ôn lại mọi câu chưa đánh dấu "đã thuộc" của Ngày 1–6',
                            '- [ ] Viết ra 5 lỗ hổng lớn nhất để vá trong tuần 2'],
          coding=[lc(206, 'reverse-linked-list', 'Reverse Linked List', 'Easy'),
+                 lc(24, 'swap-nodes-in-pairs', 'Swap Nodes in Pairs', 'Medium') + ' · lời giải: [dummy node](#dsa-swap-pairs)',
                  lc(21, 'merge-two-sorted-lists', 'Merge Two Sorted Lists', 'Easy'),
                  lc(141, 'linked-list-cycle', 'Linked List Cycle', 'Easy')],
          topic='Linked list'),
     dict(n=8, title='System design 1', goal='Khung trả lời 45 phút, caching, CDN, scale database, consistent hashing.',
-         theory=[ids(explicit=['sd-checklist', 'sd-estimation', 'sd-scale-up-out', 'sd-stateless-stateful', 'sd-stateful-scaling', 'sd-load-balancer', 'sd-availability', 'sd-autoscaling', 'sd-queue-backpressure', 'sd-bottleneck', 'system-design-17', 'system-design-18', 'system-design-19',
+         theory=[ids(explicit=['sd-checklist', 'lld-rate-limiter', 'sd-estimation', 'sd-scale-up-out', 'sd-stateless-stateful', 'sd-stateful-scaling', 'sd-load-balancer', 'sd-availability', 'sd-autoscaling', 'sd-queue-backpressure', 'sd-bottleneck', 'system-design-17', 'system-design-18', 'system-design-19',
                                 'system-design-20', 'sd-cdn', 'sd-consistent-hashing', 'db-replication-sharding'],
                      prefix=['cache-', 'redis-'])],
          extra=['- [ ] Tự vẽ URL shortener và rate limiter trong 35 phút mỗi bài, nói to bằng tiếng Anh'],
@@ -113,7 +116,7 @@ DAYS = [
                  lc(207, 'course-schedule', 'Course Schedule', 'Medium')],
          topic='Graphs'),
     dict(n=13, title='HR & Mock 2', goal='Mock đầy đủ theo quy trình công ty sắp phỏng vấn: HR, technical, manager.',
-         theory=[ids(prefix=['hr-screening-', 'hr-questions-to-ask'])],
+         theory=[ids(prefix=['hr-screening-', 'hr-culture-fit', 'hr-questions-to-ask'])],
          extra=['- [ ] Mock full với Claude: 30 phút HR, 60 phút technical, 30 phút behavioral',
                 '- [ ] Sửa 3 điểm yếu nhất sau buổi mock'],
          coding=[lc(70, 'climbing-stairs', 'Climbing Stairs', 'Easy'),
