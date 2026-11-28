@@ -1,7 +1,7 @@
 @@@ day-1 | Day 1: Java core | plan | lo-trinh | guide | Day 1
 **Mục tiêu:** Collections, HashMap, String, OOP, exception, generics.
 
-### Lý thuyết (13 câu)
+### Lý thuyết (20 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -11,6 +11,13 @@
 - [ ] [Vì sao String là immutable?](#java-core-4)
 - [ ] [ArrayList và LinkedList khác nhau thế nào? StringBuilder và StringBuffer?](#java-core-5)
 - [ ] [Checked và unchecked exception khác nhau thế nào? Bạn thiết kế xử lý lỗi trong service ra sao?](#java-core-6)
+- [ ] [`==` và `.equals()` khác nhau thế nào? Vì sao String lại "lạ"?](#jc-equals-operator)
+- [ ] [HashMap, LinkedHashMap và TreeMap khác nhau thế nào?](#jc-map-impls)
+- [ ] [4 trụ cột của OOP là gì? Cho ví dụ từ dự án thật.](#jc-oop-pillars)
+- [ ] [Interface và abstract class khác nhau thế nào? Khi nào chọn cái nào?](#jc-interface-vs-abstract)
+- [ ] [Diamond problem là gì? Java tránh nó thế nào?](#jc-diamond)
+- [ ] [Overloading và overriding khác nhau thế nào? Cái nào quyết định lúc compile, cái nào lúc runtime?](#jc-overload-override)
+- [ ] [synchronized và ReentrantLock khác nhau thế nào? Khi nào thật sự cần Lock?](#jc-sync-vs-lock)
 - [ ] [Abstraction và encapsulation khác nhau thế nào? Có encapsulation mà không có abstraction được không?](#jc-abstraction-encapsulation)
 - [ ] [String constant pool là gì? String được lưu ở đâu?](#jc-string-pool)
 - [ ] [Interface có private method được không? Để làm gì?](#jc-interface-private)
@@ -37,10 +44,11 @@
 @@@ day-2 | Day 2: JVM & concurrency | plan | lo-trinh | guide | Day 2
 **Mục tiêu:** Bộ nhớ JVM, GC, class loader, thread pool, virtual threads, Java 8–21.
 
-### Lý thuyết (19 câu)
+### Lý thuyết (20 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
+- [ ] [synchronized và ReentrantLock khác nhau thế nào? Khi nào thật sự cần Lock?](#jc-sync-vs-lock)
 - [ ] [Explain the Stream API. What is the difference between map and flatMap?](#java-modern-7)
 - [ ] [What is Optional for, and how is it misused?](#java-modern-9)
 - [ ] [Describe the JVM memory areas.](#jvm-10)
@@ -69,6 +77,7 @@
 - [ ] [242. Valid Anagram](https://leetcode.com/problems/valid-anagram/) (Easy)
 - [ ] [238. Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/) (Medium)
 - [ ] [128. Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/) (Medium)
+- [ ] [141. Linked List Cycle](https://leetcode.com/problems/linked-list-cycle/) (Easy) · lời giải: [Floyd](#dsa-linked-list-cycle)
 
 ### Chốt ngày
 
@@ -79,20 +88,22 @@
 @@@ day-3 | Day 3: Spring & Spring Boot | plan | lo-trinh | guide | Day 3
 **Mục tiêu:** IoC, bean lifecycle, @Transactional, AOP, auto-configuration, Security, MVC.
 
-### Lý thuyết (19 câu)
+### Lý thuyết (21 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
-- [ ] [What are IoC and dependency injection? Which injection type do you prefer?](#spring-1)
+- [ ] [IoC và dependency injection là gì? Vì sao nên dùng constructor injection thay vì field injection?](#spring-1)
 - [ ] [Describe the bean lifecycle and scopes.](#spring-2)
 - [ ] [How does @Transactional work, and when does it silently not work?](#spring-3)
-- [ ] [Explain propagation and isolation.](#spring-4)
+- [ ] [@Transactional: propagation REQUIRED (mặc định) và REQUIRES_NEW khác nhau thế nào? Isolation là gì?](#spring-4)
 - [ ] [How does Spring Boot auto-configuration work?](#spring-5)
 - [ ] [How does Spring AOP work, and what are its limits?](#spring-6)
 - [ ] [How does Spring Security process a request? How did authentication work in your last system?](#spring-7)
 - [ ] [How do you design and version a REST API?](#spring-8)
 - [ ] [Which design patterns have you actually used? Explain SOLID briefly.](#spring-9)
 - [ ] [How do you test a Spring Boot service?](#spring-10)
+- [ ] [Spring có những bean scope nào? Khi nào dùng scope khác singleton?](#sp-scopes)
+- [ ] [@Component, @Service, @Repository và @Controller khác nhau thế nào?](#sp-stereotypes)
 - [ ] [Can a Spring Boot app run without @SpringBootApplication?](#sp-without-sba)
 - [ ] [What is DispatcherServlet? Walk through the Spring MVC request flow.](#sp-dispatcher)
 - [ ] [@RequestParam vs @PathVariable: can you use both in one method?](#sp-param-path)
@@ -470,7 +481,7 @@
 @@@ day-12 | Day 12: Behavioral & AI | plan | lo-trinh | guide | Day 12
 **Mục tiêu:** 8 câu chuyện STAR bằng chuyện thật, AI tools, Agile.
 
-### Lý thuyết (32 câu)
+### Lý thuyết (33 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -505,6 +516,7 @@
 - [ ] [How do you estimate work and work in Scrum?](#behavioral-10)
 - [ ] [How do you learn a new domain or technology quickly?](#behavioral-11)
 - [ ] [Where do you see yourself in three years?](#behavioral-12)
+- [ ] [Kể về một bug khó nhất bạn từng sửa.](#behavioral-hard-bug)
 - [ ] [What is the SDLC, and why is Agile usually preferred over Waterfall?](#eng-sdlc-agile)
 
 ### Việc cần làm
@@ -528,7 +540,7 @@
 @@@ day-13 | Day 13: HR & Mock 2 | plan | lo-trinh | guide | Day 13
 **Mục tiêu:** Mock đầy đủ theo quy trình công ty sắp phỏng vấn: HR, technical, manager.
 
-### Lý thuyết (9 câu)
+### Lý thuyết (10 câu)
 
 *Bật nút luyện tập, tự nói bằng tiếng Anh 60–90 giây rồi mới xem câu trả lời mẫu.*
 
@@ -541,6 +553,7 @@
 - [ ] [When can you start? Are you interviewing elsewhere?](#hr-screening-7)
 - [ ] [Are you open to working on a project chosen after you join, or in a different time zone?](#hr-screening-8)
 - [ ] [What is your strongest technology, and your weakest?](#hr-screening-9)
+- [ ] [Khi được hỏi "Bạn có câu hỏi nào cho chúng tôi không?", nên hỏi gì?](#hr-questions-to-ask)
 
 ### Việc cần làm
 
